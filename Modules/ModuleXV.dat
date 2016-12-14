@@ -1,0 +1,16 @@
+<[RESERVED]>
+[1]
+"[Reserved]"
+""
+"This is disassembler's internal remark for opcodes that are not equivalent to a normal CPU instruction. These are reserved for internal (CPU's) usage and should be avoided by the programmer as their results are rather unexpected."
+[2]
+"Unexpected, off the official documentation."
+"Should not be used."
+[3]
+"Unpredictable"
+[4]
+"Unknown"
+[5]
+"Various opcodes."
+[6]
+</[RESERVED]>

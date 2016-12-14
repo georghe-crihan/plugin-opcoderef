@@ -1,0 +1,2491 @@
+<F2XM1>
+[1]
+"F2XM1: Compute 2^x –1"
+""
+"Calculates the exponential value of 2 to the power of the source operand minus 1. The source operand is located in register ST(0) and the result is also stored in ST(0). The value of the source operand must lie in the range –1.0 to +1.0. If the source value is outside this range, the result is undefined."
+[2]
+"ST(0) ¬ (2 ST(0) - 1);"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred. Indicates rounding direction if the inexact-result exception (#P) is generated: 0 = not roundup; 1 = roundup. C0, C2, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA Source operand is an SNaN value or unsupported format."
+"#D Result is a denormal value."
+"#U Result is too small for destination format."
+"#P Value cannot be represented exactly in destination format."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"D9 F0 F2XM1 Replace ST(0) with (2^ST(0) – 1)"
+[6]
+</F2XM1>
+<FABS>
+[1]
+"FABS: Absolute Value"
+""
+"Clears the sign bit of ST(0) to create the absolute value of the operand."
+[2]
+"ST(0) ¬ |ST(0)|"
+[3]
+"C1 Set to 0 if stack underflow occurred; otherwise, cleared to 0. C0, C2, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"D9 E1 FABS Replace ST with its absolute value."
+[6]
+</FABS>
+<FADD>
+<FADDP>
+<FIADD>
+[1]
+"FADD/FADDP/FIADD: Add"
+""
+"Adds the destination and source operands and stores the sum in the destination location. The destination operand is always an FPU register; the source operand can be a register or a memory location. Source operands in memory can be in single-real, double-real, word-integer, or short-integer formats."
+"The no-operand version of the instruction adds the contents of the ST(0) register to the ST(1) register. The one-operand version adds the contents of a memory location (either a real or an integer value) to the contents of the ST(0) register. The two-operand version, adds the contents of the ST(0) register to the ST(i) register or vice versa. The value in ST(0) can be doubled by coding: FADD ST(0), ST(0);"
+"The FADDP instructions perform the additional operation of popping the FPU register stack after storing the result. To pop the register stack, the processor marks the ST(0) register as empty and increments the stack pointer (TOP) by 1. (The no-operand version of the floating-point add instructions always results in the register stack being popped. In some assemblers, the mnemonic for this instruction is FADD rather than FADDP.)"
+"The FIADD instructions convert an integer source operand to extended-real format before performing the addition."
+"When the sum of two operands with opposite signs is 0, the result is +0, except for the round toward -¥ mode, in which case the result is -0. When the source operand is an integer 0, it is treated as a +0. When both operand are infinities of the same sign, the result is ¥ of the expected sign. If both operands are infinities of opposite signs, an invalid-operation exception is generated."
+[2]
+"IF instruction is FIADD"
+"THEN"
+"DEST ¬ DEST + ConvertExtendedReal(SRC);"
+"ELSE (* source operand is real number *)"
+"DEST ¬ DEST + SRC;"
+"FI;"
+"IF instruction = FADDP"
+"THEN"
+"PopRegisterStack;"
+"FI;"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred. Indicates rounding direction if the inexact-result exception (#P) is generated: 0 = not roundup; 1 = roundup. C0, C2, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA Operand is an SNaN value or unsupported format. Operands are infinities of unlike sign."
+"#D Result is a denormal value."
+"#U Result is too small for destination format."
+"#O Result is too large for destination format."
+"#P Value cannot be represented exactly in destination format."
+""
+"Protected Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"D8 /0 FADD m32 real Add m32real to ST(0) and store result in ST(0)"
+"DC /0 FADD m64real Add m64real to ST(0) and store result in ST(0)"
+"D8 C0+i FADD ST(0), ST(i) Add ST(0) to ST(i) and store result in ST(0)"
+"DC C0+i FADD ST(i), ST(0) Add ST(i) to ST(0) and store result in ST(i)"
+"DE C0+i FADDP ST(i), ST(0) Add ST(0) to ST(i), store result in ST(i), and pop the register stack"
+"DE C1 FADDP Add ST(0) to ST(1), store result in ST(1), and pop the register stack"
+"DA /0 FIADD m32int Add m32int to ST(0) and store result in ST(0)"
+"DE /0 FIADD m16int Add m16int to ST(0) and store result in ST(0)"
+[6]
+</FADD>
+</FADDP>
+</FIADD>
+<FBLD>
+[1]
+"FBLD: Load Binary Coded Decimal"
+""
+"Converts the BCD source operand into extended-real format and pushes the value onto the FPU stack. The source operand is loaded without rounding errors. The sign of the source operand is preserved, including that of -0. The packed BCD digits are assumed to be in the range 0 through 9; the instruction does not check for invalid digits (AH through FH). Attempting to load an invalid encoding produces an undefined result."
+[2]
+"TOP ¬ TOP - 1;"
+"ST(0) ¬ ExtendedReal(SRC);"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 1 if stack overflow occurred; otherwise, cleared to 0. C0, C2, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack overflow occurred."
+""
+"Protected Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"DF /4 FBLD m80 dec Convert BCD value to real and push onto the FPU stack."
+[6]
+</FBLD>
+<FBSTP>
+[1]
+"FBSTP: Store BCD Integer and Pop"
+""
+"Converts the value in the ST(0) register to an 18-digit packed BCD integer, stores the result in the destination operand, and pops the register stack. If the source value is a non-integral value, it is rounded to an integer value, according to rounding mode specified by the RC field of the FPU control word. To pop the register stack, the processor marks the ST(0) register as empty and increments the stack pointer (TOP) by 1."
+"The destination operand specifies the address where the first byte destination value is to be stored. The BCD value (including its sign bit) requires 10 bytes of space in memory. If the source value is too large for the destination format and the invalid-operation exception is not masked, an invalid-operation exception is generated and no value is stored in the destination operand. If the invalid-operation exception is masked, the packed BCD indefinite value is stored in memory. If the source value is a quiet NaN, an invalid-operation exception is generated. Quiet NaNs do not normally cause this exception to be generated."
+[2]
+"DEST ¬ BCD(ST(0));"
+"PopRegisterStack;"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred. Indicates rounding direction if the inexact exception (#P) is generated: 0 = not roundup; 1 = roundup. C0, C2, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA Source operand is empty; contains a NaN, ±¥, or unsupported format; or contains value that exceeds 18 BCD digits in length."
+"#P Value cannot be represented exactly in destination format."
+""
+"Protected Mode Exceptions"
+""
+"#GP(0) If a segment register is being loaded with a segment selector that points to a nonwritable segment. If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"DF /6 FBSTP m80bcd Store ST(0) in m80bcd and pop ST(0)."
+[6]
+</FBSTP>
+<FCHS>
+[1]
+"FCHS: Change Sign"
+""
+"Complements the sign bit of ST(0). This operation changes a positive value into a negative value of equal magnitude or vice versa."
+[2]
+"SignBit(ST(0)) ¬ NOT (SignBit(ST(0)))"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred; otherwise, cleared to 0. C0, C2, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"D9 E0 FCHS Complements sign of ST(0)"
+[6]
+</FCHS>
+<FCLEX>
+<FNCLEX>
+[1]
+"FCLEX/FNCLEX: Clear Exceptions"
+""
+"Clears the floating-point exception flags (PE, UE, OE, ZE, DE, and IE), the exception summary status flag (ES), the stack fault flag (SF), and the busy flag (B) in the FPU status word. The FCLEX instruction checks for and handles any pending unmasked floating-point exceptions before clearing the exception flags; the FNCLEX instruction does not."
+""
+"Intel Architecture Compatibility"
+""
+"When operating a Pentium or Intel486 processor in MS-DOS compatibility mode, it is possible (under unusual circumstances) for an FNCLEX instruction to be interrupted prior to being executed to handle a pending FPU exception. An FNCLEX instruction cannot be interrupted in this way on a Pentium Pro processor."
+[2]
+"FPUStatusWord[0..7] ¬ 0;"
+"FPUStatusWord[15] ¬ 0;"
+[3]
+"FPU Flags Affected"
+""
+"The PE, UE, OE, ZE, DE, IE, ES, SF, and B flags in the FPU status word are cleared. The C0, C1, C2, and C3 flags are undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"None."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"9B DB E2 FCLEX Clear floating-point exception flags after checking for pending unmasked floating-point exceptions."
+"DB E2 FNCLEX Clear floating-point exception flags without checking for pending unmasked floating-point exceptions."
+[6]
+</FCLEX>
+</FNCLEX>
+<FCMOVB>
+<FCMOVE>
+<FCMOVBE>
+<FCMOVU>
+<FCMOVNB>
+<FCMOVNE>
+<FCMOVNBE>
+<FCMOVNU>
+[1]
+"FCMOV cc: Floating-Point Conditional Move"
+""
+"Tests the status flags in the EFLAGS register and moves the source operand (second operand) to the destination operand (first operand) if the given test condition is true. The source operand is always in the ST(i) register and the destination operand is always ST(0). The FCMOVcc instructions are useful for optimizing small IF constructions. They also help eliminate branching overhead for IF operations and the possibility of branch mispredictions by the processor. A processor may not support the FCMOVcc instructions. Software can check if the FCMOVcc instructions are supported by checking the processor’s feature information with the CPUID instruction. If both the CMOV and FPU feature bits are set, the FCMOVcc instructions are supported."
+""
+"Intel Architecture Compatibility"
+""
+"The FCMOVcc instructions were introduced to the Intel Architecture in the Pentium Pro processor family and is not available in earlier Intel Architecture processors."
+[2]
+"IF condition TRUE"
+"ST(0) ¬ ST(i)"
+"FI;"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred. C0, C2, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+""
+"Integer Flags Affected"
+""
+"None."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"DA C0+i FCMOVB ST(0), ST(i) Move if below (CF=1)"
+"DA C8+i FCMOVE ST(0), ST(i) Move if equal (ZF=1)"
+"DA D0+i FCMOVBE ST(0), ST(i) Move if below or equal (CF=1 or ZF=1)"
+"DA D8+i FCMOVU ST(0), ST(i) Move if unordered (PF=1)"
+"DB C0+i FCMOVNB ST(0), ST(i) Move if not below (CF=0)"
+"DB C8+i FCMOVNE ST(0), ST(i) Move if not equal (ZF=0)"
+"DB D0+i FCMOVNBE ST(0), ST(i) Move if not below or equal (CF=0 and ZF=0)"
+"DB D8+i FCMOVNU ST(0), ST(i) Move if not unordered (PF=0)"
+[6]
+</FCMOVB>
+</FCMOVE>
+</FCMOVBE>
+</FCMOVU>
+</FCMOVNB>
+</FCMOVNE>
+</FCMOVNBE>
+</FCMOVNU>
+<FCOM>
+<FCOMP>
+<FCOMPP>
+[1]
+"FCOM/FCOMP/FCOMPP: Compare Real"
+""
+"Compares the contents of register ST(0) and source value and sets condition code flags C0, C2, and C3 in the FPU status word according to the results. The source operand can be a data register or a memory location. If no source operand is given, the value in ST(0) is compared with the value in ST(1). The sign of zero is ignored, so that –0.0 = +0.0."
+""
+"NOTE:"
+"* Flags not set if unmasked invalid-arithmetic-operand (#IA) exception is generated. This instruction checks the class of the numbers being compared. If either operand is a NaN or is in an unsupported format, an invalid-arithmetic-operand exception (#IA) is raised and, if the exception is masked, the condition flags are set to “unordered.” If the invalid-arithmetic-operand exception is unmasked, the condition code flags are not set."
+""
+"The FCOMP instruction pops the register stack following the comparison operation and the FCOMPP instruction pops the register stack twice following the comparison operation. To pop the register stack, the processor marks the ST(0) register as empty and increments the stack pointer (TOP) by 1."
+"The FCOM instructions perform the same operation as the FUCOM instructions. The only difference is how they handle QNaN operands. The FCOM instructions raise an invalid-arithmetic-operand exception (#IA) when either or both of the operands is a NaN value or is in an unsupported format. The FUCOM instructions perform the same operation as the FCOM instructions, except that they do not generate an invalid-arithmetic-operand exception for QNaNs."
+[2]
+"CASE (relation of operands) OF"
+"ST > SRC: C3, C2, C0 ¬ 000;"
+"ST < SRC: C3, C2, C0 ¬ 001;"
+"ST = SRC: C3, C2, C0 ¬ 100;"
+"ESAC;"
+"IF ST(0) or SRC = NaN or unsupported format"
+"THEN"
+"#IA"
+"IF FPUControlWord.IM = 1"
+"THEN"
+"C3, C2, C0 ¬ 111;"
+"FI;"
+"FI;"
+"IF instruction = FCOMP"
+"THEN"
+"PopRegisterStack;"
+"FI;"
+"IF instruction = FCOMPP"
+"THEN"
+"PopRegisterStack;"
+"PopRegisterStack;"
+"FI;"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred; otherwise, cleared to 0."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA One or both operands are NaN values or have unsupported formats. Register is marked empty."
+"#D One or both operands are denormal values."
+""
+"Protected Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"D8 /2 FCOM m32real Compare ST(0) with m32real."
+"DC /2 FCOM m64real Compare ST(0) with m64real."
+"D8 D0+i FCOM ST(i) Compare ST(0) with ST(i)."
+"D8 D1 FCOM Compare ST(0) with ST(1)."
+"D8 /3 FCOMP m32real Compare ST(0) with m32real and pop register stack."
+"DC /3 FCOMP m64real Compare ST(0) with m64real and pop register stack."
+"D8 D8+i FCOMP ST(i) Compare ST(0) with ST(i) and pop register stack."
+"D8 D9 FCOMP Compare ST(0) with ST(1) and pop register stack."
+"DE D9 FCOMPP Compare ST(0) with ST(1) and pop register stack twice."
+[6]
+</FCOM>
+</FCOMP>
+</FCOMPP>
+<FCOMI>
+<FCOMIP>
+<FUCOMI>
+<FUCOMIP>
+[1]
+"FCOMI/FCOMIP/FUCOMI/FUCOMIP: Compare Real and Set EFLAGS"
+""
+"Compares the contents of register ST(0) and ST(i) and sets the status flags ZF, PF, and CF in the EFLAGS register according to the results. The sign of zero is ignored for comparisons, so that –0.0 = +0.0."
+"The FCOMI/FCOMIP instructions perform the same operation as the FUCOMI/FUCOMIP instructions. The only difference is how they handle QNaN operands. The FCOMI/FCOMIP instructions set the status flags to “unordered” and generate an invalid-arithmetic-operand exception (#IA) when either or both of the operands is a NaN value (SNaN or QNaN) or is in an unsupported format."
+"The FUCOMI/FUCOMIP instructions perform the same operation as the FCOMI/FCOMIP instructions, except that they do not generate an invalid-arithmetic-operand exception for QNaNs."
+"If invalid-operation exception is unmasked, the status flags are not set if the invalid-arithmetic-operand exception is generated. The FCOMIP and FUCOMIP instructions also pop the register stack following the comparison operation. To pop the register stack, the processor marks the ST(0) register as empty and increments the stack pointer (TOP) by 1."
+""
+"Intel Architecture Compatibility"
+""
+"The FCOMI/FCOMIP/FUCOMI/FUCOMIP instructions were introduced to the Intel Architecture in the Pentium Pro processor family and are not available in earlier Intel Architecture processors."
+[2]
+"CASE (relation of operands) OF"
+"ST(0) > ST(i): ZF, PF, CF ¬ 000;"
+"ST(0) < ST(i): ZF, PF, CF ¬ 001;"
+"ST(0) = ST(i): ZF, PF, CF ¬ 100;"
+"ESAC;"
+"IF instruction is FCOMI or FCOMIP"
+"THEN"
+"IF ST(0) or ST(i) = NaN or unsupported format"
+"THEN"
+"#IA"
+"IF FPUControlWord.IM = 1"
+"THEN"
+"ZF, PF, CF ¬ 111;"
+"FI;"
+"FI;"
+"FI;"
+"IF instruction is FUCOMI or FUCOMIP"
+"THEN"
+"IF ST(0) or ST(i) = QNaN, but not SNaN or unsupported format"
+"THEN"
+"ZF, PF, CF ¬ 111;"
+"ELSE (* ST(0) or ST(i) is SNaN or unsupported format *)"
+"#IA;"
+"IF FPUControlWord.IM = 1"
+"THEN"
+"ZF, PF, CF ¬ 111;"
+"FI;"
+"FI;"
+"FI;"
+"IF instruction is FCOMIP or FUCOMIP"
+"THEN"
+"PopRegisterStack;"
+"FI;"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred; otherwise, cleared to 0. C0, C2, C3 Not affected."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA (FCOMI or FCOMIP instruction) One or both operands are NaN values or have unsupported formats. (FUCOMI or FUCOMIP instruction) One or both operands are SNaN values (but not QNaNs) or have undefined formats. Detection of a QNaN value does not raise an invalid-operand exception."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"DB F0+i FCOMI ST, ST(i) Compare ST(0) with ST(i) and set status flags accordingly"
+"DF F0+i FCOMIP ST, ST(i) Compare ST(0) with ST(i), set status flags accordingly, and pop register stack"
+"DB E8+i FUCOMI ST, ST(i) Compare ST(0) with ST(i), check for ordered values, and set status flags accordingly"
+"DF E8+i FUCOMIP ST, ST(i) Compare ST(0) with ST(i), check for ordered values, set status flags accordingly, and pop register stack"
+[6]
+</FCOMI>
+</FCOMIP>
+</FUCOMI>
+</FUCOMIP>
+<FCOS>
+[1]
+"FCOS: Cosine"
+""
+"Calculates the cosine of the source operand in register ST(0) and stores the result in ST(0). The source operand must be given in radians and must be within the range -2^63 to +2^63. If the source operand is outside the acceptable range, the C2 flag in the FPU status word is set, and the value in register ST(0) remains unchanged. The instruction does not raise an exception when the source operand is out of range. It is up to the program to check the C2 flag for out-of-range conditions. Source values outside the range -2^63 to +2^63 can be reduced to the range of the instruction by subtracting an appropriate integer multiple of 2p or by using the FPREM instruction with a divisor of 2p."
+[2]
+"IF |ST(0)| < 2 63"
+"THEN"
+"C2 ¬ 0;"
+"ST(0) ¬ cosine(ST(0));"
+"ELSE (*source operand is out-of-range *)"
+"C2 ¬ 1;"
+"FI;"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred. Indicates rounding direction if the inexact-result exception (#P) is generated: 0 = not roundup; 1 = roundup. Undefined if C2 is 1. C2 Set to 1 if source operand is outside the range -2^63 to +2^63 ; otherwise, cleared to 0. C0, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA Source operand is an SNaN value, ¥, or unsupported format."
+"#D Result is a denormal value."
+"#U Result is too small for destination format."
+"#P Value cannot be represented exactly in destination format."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"D9 FF FCOS Replace ST(0) with its cosine"
+[6]
+</FCOS>
+<FDECSTP>
+[1]
+"FDECSTP: Decrement Stack-Top Pointer"
+""
+"Subtracts one from the TOP field of the FPU status word (decrements the top-of-stack pointer). If the TOP field contains a 0, it is set to 7. The effect of this instruction is to rotate the stack by one position. The contents of the FPU data registers and tag register are not affected."
+[2]
+"IF TOP = 0"
+"THEN TOP ¬ 7;"
+"ELSE TOP ¬ TOP – 1;"
+"FI;"
+[3]
+"FPU Flags Affected"
+""
+"The C1 flag is set to 0; otherwise, cleared to 0. The C0, C2, and C3 flags are undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"None."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"D9 F6 FDECSTP Decrement TOP field in FPU status word."
+[6]
+</FDECSTP>
+<FDIV>
+<FDIVP>
+<FIDIV>
+[1]
+"FDIV/FDIVP/FIDIV: Divide"
+""
+"Divides the destination operand by the source operand and stores the result in the destination location. The destination operand (dividend) is always in an FPU register; the source operand (divisor) can be a register or a memory location. Source operands in memory can be in single-real, double-real, word-integer, or short-integer formats."
+"The no-operand version of the instruction divides the contents of the ST(1) register by the contents of the ST(0) register. The one-operand version divides the contents of the ST(0) register by the contents of a memory location (either a real or an integer value). The two-operand version, divides the contents of the ST(0) register by the contents of the ST(i) register or vice versa."
+"The FDIVP instructions perform the additional operation of popping the FPU register stack after storing the result. To pop the register stack, the processor marks the ST(0) register as empty and increments the stack pointer (TOP) by 1. The no-operand version of the floating-point divide instructions always results in the register stack being popped. In some assemblers, the mnemonic for this instruction is FDIV rather than FDIVP."
+"The FIDIV instructions convert an integer source operand to extended-real format before performing the division. When the source operand is an integer 0, it is treated as a +0. If an unmasked divide by zero exception (#Z) is generated, no result is stored; if the exception is masked, an ¥ of the appropriate sign is stored in the destination operand."
+[2]
+"IF SRC = 0"
+"THEN"
+"#Z"
+"ELSE"
+"IF instruction is FIDIV"
+"THEN"
+"DEST ¬ DEST / ConvertExtendedReal(SRC);"
+"ELSE (* source operand is real number *)"
+"DEST ¬ DEST / SRC;"
+"FI;"
+"FI;"
+"IF instruction = FDIVP"
+"THEN"
+"PopRegisterStack"
+"FI;"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred. Indicates rounding direction if the inexact-result exception (#P) is generated: 0 = not roundup; 1 = roundup. C0, C2, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA Operand is an SNaN value or unsupported format. ±¥ / ±¥; ±0 / ±0"
+"#D Result is a denormal value."
+"#Z DEST / ±0, where DEST is not equal to ±0."
+"#U Result is too small for destination format."
+"#O Result is too large for destination format."
+"#P Value cannot be represented exactly in destination format."
+""
+"Protected Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"D8 /6 FDIV m32real Divide ST(0) by m32real and store result in ST(0)"
+"DC /6 FDIV m64real Divide ST(0) by m64real and store result in ST(0)"
+"D8 F0+i FDIV ST(0), ST(i) Divide ST(0) by ST(i) and store result in ST(0)"
+"DC F8+i FDIV ST(i), ST(0) Divide ST(i) by ST(0) and store result in ST(i)"
+"DE F8+i FDIVP ST(i), ST(0) Divide ST(i) by ST(0), store result in ST(i), and pop the register stack"
+"DE F9 FDIVP Divide ST(1) by ST(0), store result in ST(1), and pop the register stack"
+"DA /6 FIDIV m32int Divide ST(0) by m32int and store result in ST(0)"
+"DE /6 FIDIV m16int Divide ST(0) by m64int and store result in ST(0)"
+[6]
+</FDIV>
+</FDIVP>
+</FIDIV>
+<FDIVR>
+<FDIVRP>
+<FIDIVR>
+[1]
+"FDIVR/FDIVRP/FIDIVR: Reverse Divide"
+""
+"Divides the source operand by the destination operand and stores the result in the destination location. The destination operand (divisor) is always in an FPU register; the source operand (dividend) can be a register or a memory location. Source operands in memory can be in single-real, double-real, word-integer, or short-integer formats. These instructions perform the reverse operations of the FDIV, FDIVP, and FIDIV instructions. They are provided to support more efficient coding. The no-operand version of the instruction divides the contents of the ST(0) register by the contents of the ST(1) register. The one-operand version divides the contents of a memory location (either a real or an integer value) by the contents of the ST(0) register. The two-operand version, divides the contents of the ST(i) register by the contents of the ST(0) register or vice versa."
+"The FDIVRP instructions perform the additional operation of popping the FPU register stack after storing the result. To pop the register stack, the processor marks the ST(0) register as empty and increments the stack pointer (TOP) by 1. The no-operand version of the floating-point divide instructions always results in the register stack being popped. In some assemblers, the mnemonic for this instruction is FDIVR rather than FDIVRP."
+"The FIDIVR instructions convert an integer source operand to extended-real format before performing the division. If an unmasked divide by zero exception (#Z) is generated, no result is stored; if the exception is masked, an ¥ of the appropriate sign is stored in the destination operand."
+[2]
+"IF DEST = 0"
+"THEN"
+"#Z"
+"ELSE"
+"IF instruction is FIDIVR"
+"THEN"
+"DEST ¬ ConvertExtendedReal(SRC) / DEST;"
+"ELSE (* source operand is real number *)"
+"DEST ¬ SRC / DEST;"
+"FI;"
+"FI;"
+"IF instruction = FDIVRP"
+"THEN"
+"PopRegisterStack"
+"FI;"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred. Indicates rounding direction if the inexact-result exception (#P) is generated: 0 = not roundup; 1 = roundup. C0, C2, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA Operand is an SNaN value or unsupported format. ±¥ / ±¥; ±0 / ±0"
+"#D Result is a denormal value."
+"#Z SRC / ±0, where SRC is not equal to ±0."
+"#U Result is too small for destination format."
+"#O Result is too large for destination format."
+"#P Value cannot be represented exactly in destination format."
+""
+"Protected Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"D8 /7 FDIVR m32real Divide m32real by ST(0) and store result in ST(0)"
+"DC /7 FDIVR m64real Divide m64real by ST(0) and store result in ST(0)"
+"D8 F8+i FDIVR ST(0), ST(i) Divide ST(i) by ST(0) and store result in ST(0)"
+"DC F0+i FDIVR ST(i), ST(0) Divide ST(0) by ST(i) and store result in ST(i)"
+"DE F0+i FDIVRP ST(i), ST(0) Divide ST(0) by ST(i), store result in ST(i), and pop the register stack"
+"DE F1 FDIVRP Divide ST(0) by ST(1), store result in ST(1), and pop the register stack"
+"DA /7 FIDIVR m32int Divide m32int by ST(0) and store result in ST(0)"
+"DE /7 FIDIVR m16int Divide m64int by ST(0) and store result in ST(0)"
+[6]
+</FDIVR>
+</FDIVRP>
+</FIDIVR>
+<FFREE>
+[1]
+"FFREE: Free Floating-Point Register"
+""
+"Sets the tag in the FPU tag register associated with register ST(i) to empty (11B). The contents of ST(i) and the FPU stack-top pointer (TOP) are not affected."
+[2]
+"TAG(i) ¬ 11B;"
+[3]
+"FPU Flags Affected"
+""
+"C0, C1, C2, C3 undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"None."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"DD C0+i FFREE ST(i) Sets tag for ST(i) to empty"
+[6]
+</FFREE>
+<FICOM>
+<FICOMP>
+[1]
+"FICOM/FICOMP: Compare Integer"
+""
+"Compares the value in ST(0) with an integer source operand and sets the condition code flags C0, C2, and C3 in the FPU status word according to the results. The integer value is converted to extended-real format before the comparison is made. These instructions perform an “unordered comparison.” An unordered comparison also checks the class of the numbers being compared. If either operand is a NaN or is in an undefined format, the condition flags are set to “unordered.” The sign of zero is ignored, so that –0.0 = +0.0. The FICOMP instructions pop the register stack following the comparison. To pop the register stack, the processor marks the ST(0) register empty and increments the stack pointer (TOP) by 1."
+[2]
+"CASE (relation of operands) OF"
+"ST(0) > SRC: C3, C2, C0 ¬ 000;"
+"ST(0) < SRC: C3, C2, C0 ¬ 001;"
+"ST(0) = SRC: C3, C2, C0 ¬ 100;"
+"Unordered: C3, C2, C0 ¬ 111;"
+"ESAC;"
+"IF instruction = FICOMP"
+"THEN"
+"PopRegisterStack;"
+"FI;"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred; otherwise, set to 0. C0, C2, C3 according to tables."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA One or both operands are NaN values or have unsupported formats."
+"#D One or both operands are denormal values."
+""
+"Protected Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"DE /2 FICOM m16int Compare ST(0) with m16int"
+"DA /2 FICOM m32int Compare ST(0) with m32int"
+"DE /3 FICOMP m16int Compare ST(0) with m16int and pop stack register"
+"DA /3 FICOMP m32int Compare ST(0) with m32int and pop stack register"
+[6]
+</FICOM>
+</FICOMP>
+<FILD>
+[1]
+"FILD: Load Integer"
+""
+"Converts the signed-integer source operand into extended-real format and pushes the value onto the FPU register stack. The source operand can be a word, short, or long integer value. It is loaded without rounding errors. The sign of the source operand is preserved."
+[2]
+"TOP ¬ TOP - 1;"
+"ST(0) ¬ ExtendedReal(SRC);"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 1 if stack overflow occurred; cleared to 0 otherwise. C0, C2, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack overflow occurred."
+""
+"Protected Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"DF /0 FILD m16int Push m16int onto the FPU register stack."
+"DB /0 FILD m32int Push m32int onto the FPU register stack."
+"DF /5 FILD m64int Push m64int onto the FPU register stack."
+[6]
+</FILD>
+<FINCSTP>
+[1]
+"FINCSTP: Increment Stack-Top Pointer"
+""
+"Adds one to the TOP field of the FPU status word (increments the top-of-stack pointer). If the TOP field contains a 7, it is set to 0. The effect of this instruction is to rotate the stack by one position. The contents of the FPU data registers and tag register are not affected. This operation is not equivalent to popping the stack, because the tag for the previous top-of-stack register is not marked empty."
+[2]
+"IF TOP = 7"
+"THEN TOP ¬ 0;"
+"ELSE TOP ¬ TOP + 1;"
+"FI;"
+[3]
+"FPU Flags Affected"
+""
+"The C1 flag is set to 0; otherwise, cleared to 0. The C0, C2, and C3 flags are undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"None."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"D9 F7 FINCSTP Increment the TOP field in the FPU status register"
+[6]
+</FINCSTP>
+<FINIT>
+<FNINIT>
+[1]
+"FINIT/FNINIT: Initialize Floating-Point Unit"
+""
+"Sets the FPU control, status, tag, instruction pointer, and data pointer registers to their default states. The FPU control word is set to 037FH (round to nearest, all exceptions masked, 64-bit precision). The status word is cleared (no exception flags set, TOP is set to 0). The data registers in the register stack are left unchanged, but they are all tagged as empty (11B). Both the instruction and data pointers are cleared. The FINIT instruction checks for and handles any pending unmasked floating-point exceptions before performing the initialization; the FNINIT instruction does not."
+""
+"Intel Architecture Compatibility"
+""
+"When operating a Pentium or Intel486 processor in MS-DOS compatibility mode, it is possible (under unusual circumstances) for an FNINIT instruction to be interrupted prior to being executed to handle a pending FPU exception. An FNINIT instruction cannot be interrupted in this way on a Pentium Pro processor. In the Intel387 math coprocessor, the FINIT/FNINIT instruction does not clear the instruction and data pointers."
+[2]
+"FPUControlWord ¬ 037FH;"
+"FPUStatusWord ¬ 0;"
+"FPUTagWord ¬ FFFFH;"
+"FPUDataPointer ¬ 0;"
+"FPUInstructionPointer ¬ 0;"
+"FPULastInstructionOpcode ¬ 0;"
+[3]
+"FPU Flags Affected"
+""
+"C0, C1, C2, C3 cleared to 0."
+[4]
+"Floating-Point Exceptions"
+""
+"None."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"9B DB E3 FINIT Initialize FPU after checking for pending unmasked floating-point exceptions."
+"DB E3 FNINIT Initialize FPU without checking for pending unmasked floating-point exceptions."
+[6]
+</FINIT>
+</FNINIT>
+<FIST>
+<FISTP>
+[1]
+"FIST/FISTP: Store Integer"
+""
+"The FIST instruction converts the value in the ST(0) register to a signed integer and stores the result in the destination operand. Values can be stored in word- or short-integer format. The destination operand specifies the address where the first byte of the destination value is to be stored. The FISTP instruction performs the same operation as the FIST instruction and then pops the register stack. To pop the register stack, the processor marks the ST(0) register as empty and increments the stack pointer (TOP) by 1. The FISTP instruction can also stores values in long-integer format."
+"If the source value is a non-integral value, it is rounded to an integer value, according to the rounding mode specified by the RC field of the FPU control word. If the value being stored is too large for the destination format, is an ¥, is a NaN, or is in an unsupported format and if the invalid-arithmetic-operand exception (#IA) is unmasked, an invalid-operation exception is generated and no value is stored in the destination operand. If the invalid-operation exception is masked, the integer indefinite value is stored in the destination operand."
+[2]
+"DEST ¬ Integer(ST(0));"
+"IF instruction = FISTP"
+"THEN"
+"PopRegisterStack;"
+"FI;"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred. Indicates rounding direction of if the inexact exception (#P) is generated: 0 = not roundup; 1 = roundup. Cleared to 0 otherwise. C0, C2, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA Source operand is too large for the destination format. Source operand is a NaN value or unsupported format."
+"#P Value cannot be represented exactly in destination format."
+""
+"Protected Mode Exceptions"
+""
+"#GP(0) If the destination is located in a nonwritable segment. If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register is used to access memory and it contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"DF /2 FIST m16int Store ST(0) in m16int"
+"DB /2 FIST m32int Store ST(0) in m32int"
+"DF /3 FISTP m16int Store ST(0) in m16int and pop register stack"
+"DB /3 FISTP m32int Store ST(0) in m32int and pop register stack"
+"DF /7 FISTP m64int Store ST(0) in m64int and pop register stack"
+[6]
+</FIST>
+</FISTP>
+<FLD>
+[1]
+"FLD: Load Real"
+""
+"Pushes the source operand onto the FPU register stack. If the source operand is in single- or double-real format, it is automatically converted to the extended-real format before being pushed on the stack. The FLD instruction can also push the value in a selected FPU register [ST(i)] onto the stack. Here, pushing register ST(0) duplicates the stack top."
+[2]
+"IF SRC is ST(i)"
+"THEN"
+"temp ¬ ST(i)"
+"TOP ¬ TOP - 1;"
+"IF SRC is memory-operand"
+"THEN"
+"ST(0) ¬ ExtendedReal(SRC);"
+"ELSE (* SRC is ST(i) *)"
+"ST(0) ¬ temp;"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 1 if stack overflow occurred; otherwise, cleared to 0. C0, C2, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack overflow occurred."
+"#IA Source operand is an SNaN value or unsupported format."
+"#D Source operand is a denormal value. Does not occur if the source operand is in extended-real format."
+""
+"Protected Mode Exceptions"
+""
+"#GP(0) If destination is located in a nonwritable segment. If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register is used to access memory and it contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"D9 /0 FLD m32real Push m32real onto the FPU register stack."
+"DD /0 FLD m64real Push m64real onto the FPU register stack."
+"DB /5 FLD m80real Push m80real onto the FPU register stack."
+"D9 C0+i FLD ST(i) Push ST(i) onto the FPU register stack."
+[6]
+</FLD>
+<FLD1>
+<FLDL2T>
+<FLDL2E>
+<FLDPI>
+<FLDLG2>
+<FLDLN2>
+<FLDZ>
+[1]
+"FLD1/FLDL2T/FLDL2E/FLDPI/FLDLG2/FLDLN2/FLDZ: Load Constant"
+""
+"Push one of seven commonly used constants (in extended-real format) onto the FPU register stack. The constants that can be loaded with these instructions include +1.0, +0.0, log 2 10, log 2 e, p, log 10 2, and log e 2. For each constant, an internal 66-bit constant is rounded (as specified by the RC field in the FPU control word) to external-real format. The inexact-result exception (#P) is not generated as a result of the rounding."
+""
+"Intel Architecture Compatibility"
+""
+"When the RC field is set to round-to-nearest, the FPU produces the same constants that is produced by the Intel 8087 and Intel287 math coprocessors."
+[2]
+"TOP ¬ TOP - 1;"
+"ST(0) ¬ CONSTANT;"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 1 if stack overflow occurred; otherwise, cleared to 0. C0, C2, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack overflow occurred."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"D9 E8 FLD1 Push +1.0 onto the FPU register stack."
+"D9 E9 FLDL2T Push log 2 10 onto the FPU register stack."
+"D9 EA FLDL2E Push log 2 e onto the FPU register stack."
+"D9 EB FLDPI Push p onto the FPU register stack."
+"D9 EC FLDLG2 Push log 10 2 onto the FPU register stack."
+"D9 ED FLDLN2 Push log e 2 onto the FPU register stack."
+"D9 EE FLDZ Push +0.0 onto the FPU register stack."
+[6]
+</FLD1>
+</FLDL2T>
+</FLDL2E>
+</FLDPI>
+</FLDLG2>
+</FLDLN2>
+</FLDZ>
+<FLDCW>
+[1]
+"FLDCW: Load Control Word"
+""
+"Loads the 16-bit source operand into the FPU control word. The source operand is a memory location. This instruction is typically used to establish or change the FPU’s mode of operation. If one or more exception flags are set in the FPU status word prior to loading a new FPU control word and the new control word unmasks one or more of those exceptions, a floating-point exception will be generated upon execution of the next floating-point instruction (except for the no-wait floating-point instructions). To avoid raising exceptions when changing FPU operating modes, clear any pending exceptions (using the FCLEX or FNCLEX instruction) before loading the new control word."
+[2]
+"FPUControlWord ¬ SRC;"
+[3]
+"FPU Flags Affected"
+""
+"C0, C1, C2, C3 undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"None; however, this operation might unmask a pending exception in the FPU status word. That exception is then generated upon execution of the next “waiting” floating-point instruction."
+""
+"Protected Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register is used to access memory and it contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"D9 /5 FLDCW m2byte Load FPU control word from m2byte."
+[6]
+</FLDCW>
+<FLDENV>
+[1]
+"FLDENV: Load FPU Environment"
+""
+"Loads the complete FPU operating environment from memory into the FPU registers. The source operand specifies the first byte of the operating-environment data in memory. This data is typically written to the specified memory location by a FSTENV or FNSTENV instruction. The FPU operating environment consists of the FPU control word, status word, tag word, instruction pointer, data pointer, and last opcode. In virtual-8086 mode, the real mode layouts are used. The FLDENV instruction should be executed in the same operating mode as the corresponding FSTENV/FNSTENV instruction. If one or more unmasked exception flags are set in the new FPU status word, a floating-point exception will be generated upon execution of the next floating-point instruction (except for the no-wait floating-point instructions). To avoid generating exceptions when loading a new environment, clear all the exception flags in the FPU status word that is being loaded."
+[2]
+"FPUControlWord ¬ SRC(FPUControlWord);"
+"FPUStatusWord ¬ SRC(FPUStatusWord);"
+"FPUTagWord ¬ SRC(FPUTagWord);"
+"FPUDataPointer ¬ SRC(FPUDataPointer);"
+"FPUInstructionPointer ¬ SRC(FPUInstructionPointer);"
+"FPULastInstructionOpcode ¬ SRC(FPULastInstructionOpcode);"
+[3]
+"FPU Flags Affected"
+""
+"The C0, C1, C2, C3 flags are loaded."
+[4]
+"Floating-Point Exceptions"
+""
+"None; however, if an unmasked exception is loaded in the status word, it is generated upon execution of the next “waiting” floating-point instruction."
+""
+"Protected Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register is used to access memory and it contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"D9 /4 FLDENV m14/28byte Load FPU environment from m14byte or m28byte."
+[6]
+</FLDENV>
+<FMUL>
+<FMULP>
+<FIMUL>
+[1]
+"FMUL/FMULP/FIMUL: Multiply"
+""
+"Multiplies the destination and source operands and stores the product in the destination location. The destination operand is always an FPU data register; the source operand can be an FPU data register or a memory location. Source operands in memory can be in single-real, double-real, word-integer, or short-integer formats."
+"The no-operand version of the instruction multiplies the contents of the ST(1) register by the contents of the ST(0) register and stores the product in the ST(1) register. The one-operand version multiplies the contents of the ST(0) register by the contents of a memory location (either a real or an integer value) and stores the product in the ST(0) register. The two-operand version, multiplies the contents of the ST(0) register by the contents of the ST(i) register, or vice versa, with the result being stored in the register specified with the first operand (the destination operand)."
+"The FMULP instructions perform the additional operation of popping the FPU register stack after storing the product. To pop the register stack, the processor marks the ST(0) register as empty and increments the stack pointer (TOP) by 1. The no-operand version of the floating-point multiply instructions always results in the register stack being popped. In some assemblers, the mnemonic for this instruction is FMUL rather than FMULP. The FIMUL instructions convert an integer source operand to extended-real format before performing the multiplication. The sign of the result is always the exclusive-OR of the source signs, even if one or more of the values being multiplied is 0 or ¥. When the source operand is an integer 0, it is treated as a +0."
+[2]
+"IF instruction is FIMUL"
+"THEN"
+"DEST ¬ DEST * ConvertExtendedReal(SRC);"
+"ELSE (* source operand is real number *)"
+"DEST ¬ DEST * SRC;"
+"FI;"
+"IF instruction = FMULP"
+"THEN"
+"PopRegisterStack"
+"FI;"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred. Indicates rounding direction if the inexact-result exception (#P) fault is generated: 0 = not roundup; 1 = roundup. C0, C2, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA Operand is an SNaN value or unsupported format. One operand is ±0 and the other is ±¥."
+"#D Source operand is a denormal value."
+"#U Result is too small for destination format."
+"#O Result is too large for destination format."
+"#P Value cannot be represented exactly in destination format."
+""
+"Protected Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register is used to access memory and it contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"D8 /1 FMUL m32real Multiply ST(0) by m32real and store result in ST(0)"
+"DC /1 FMUL m64real Multiply ST(0) by m64real and store result in ST(0)"
+"D8 C8+i FMUL ST(0), ST(i) Multiply ST(0) by ST(i) and store result in ST(0)"
+"DC C8+i FMUL ST(i), ST(0) Multiply ST(i) by ST(0) and store result in ST(i)"
+"DE C8+i FMULP ST(i), ST(0) Multiply ST(i) by ST(0), store result in ST(i), and pop the register stack"
+"DE C9 FMULP Multiply ST(1) by ST(0), store result in ST(1), and pop the register stack"
+"DA /1 FIMUL m32int Multiply ST(0) by m32int and store result in ST(0)"
+"DE /1 FIMUL m16int Multiply ST(0) by m16int and store result in ST(0)"
+[6]
+</FMUL>
+</FMULP>
+</FIMUL>
+<FNOP>
+[1]
+"FNOP: No Operation"
+""
+"Performs no FPU operation. This instruction takes up space in the instruction stream but does not affect the FPU or machine context, except the EIP register."
+[2]
+"No Operation"
+[3]
+"FPU Flags Affected"
+""
+"C0, C1, C2, C3 undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"None."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"D9 D0 FNOP No operation is performed."
+[6]
+</FNOP>
+<FPATAN>
+[1]
+"FPATAN: Partial Arctangent"
+""
+"Computes the arctangent of the source operand in register ST(1) divided by the source operand in register ST(0), stores the result in ST(1), and pops the FPU register stack. The result in register ST(0) has the same sign as the source operand ST(1) and a magnitude less than +p. The FPATAN instruction returns the angle between the X axis and the line from the origin to the point (X,Y), where Y (the ordinate) is ST(1) and X (the abscissa) is ST(0). The angle depends on the sign of X and Y independently, not just on the sign of the ratio Y/X. This is because a point (-X,Y) is in the second quadrant, resulting in an angle between p/2 and p, while a point (X,-Y) is in the fourth quadrant, resulting in an angle between 0 and -p/2. A point (-X,-Y) is in the third quadrant, giving an angle between -p/2 and -p. There is no restriction on the range of source operands that FPATAN can accept."
+""
+"Intel Architecture Compatibility"
+""
+"The source operands for this instruction are restricted for the 80287 math coprocessor to the following range: 0 £ |ST(1)| < |ST(0)| < +¥"
+[2]
+"ST(1) ¬ arctan(ST(1) / ST(0));"
+"PopRegisterStack;"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred. Indicates rounding direction if the inexact-result exception (#P) is generated: 0 = not roundup; 1 = roundup. C0, C2, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA Source operand is an SNaN value or unsupported format."
+"#D Source operand is a denormal value."
+"#U Result is too small for destination format."
+"#P Value cannot be represented exactly in destination format."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"D9 F3 FPATAN Replace ST(1) with arctan(ST(1)/ST(0)) and pop the register stack"
+[6]
+</FPATAN>
+<FPREM>
+[1]
+"FPREM - Partial Remainder"
+""
+"Computes the remainder obtained from dividing the value in the ST(0) register (the dividend) by the value in the ST(1) register (the divisor or modulus), and stores the result in ST(0). The remainder represents the following value: Remainder = ST(0) - (Q * ST(1))"
+"Here, Q is an integer value that is obtained by truncating the real-number quotient of [ST(0) / ST(1)] toward zero. The sign of the remainder is the same as the sign of the dividend. The magnitude of the remainder is less than that of the modulus, unless a partial remainder was computed (as described below). This instruction produces an exact result; the precision (inexact) exception does not occur and the rounding control has no effect. The FPREM instruction does not compute the remainder specified in IEEE Std 754. The IEEE specified remainder can be computed with the FPREM1 instruction. The FPREM instruction is provided for compatibility with the Intel 8087 and Intel287 math coprocessors."
+"The FPREM instruction gets its name “partial remainder” because of the way it computes the remainder. This instructions arrives at a remainder through iterative subtraction. It can, however, reduce the exponent of ST(0) by no more than 63 in one execution of the instruction. If the instruction succeeds in producing a remainder that is less than the modulus, the operation is complete and the C2 flag in the FPU status word is cleared. Otherwise, C2 is set, and the result in ST(0) is called the partial remainder. The exponent of the partial remainder will be less than the exponent of the original dividend by at least 32. Software can re-execute the instruction (using the partial remainder in ST(0) as the dividend) until C2 is cleared. (Note that while executing such a remainder-computation loop, a higher-priority interrupting routine that needs the FPU can force a context switch in-between the instructions in the loop.)"
+"An important use of the FPREM instruction is to reduce the arguments of periodic functions. When reduction is complete, the instruction stores the three least-significant bits of the quotient in the C3, C1, and C0 flags of the FPU status word. This information is important in argument reduction for the tangent function (using a modulus of p/4), because it locates the original angle in the correct one of eight sectors of the unit circle."
+[2]
+"D ¬ exponent(ST(0)) – exponent(ST(1));"
+"IF D < 64"
+"THEN"
+"Q ¬ Integer(TruncateTowardZero(ST(0) / ST(1)));"
+"ST(0) ¬ ST(0) – (ST(1) * Q);"
+"C2 ¬ 0;"
+"C0, C3, C1 ¬ LeastSignificantBits(Q); (* Q2, Q1, Q0 *)"
+"ELSE"
+"C2 ¬ 1;"
+"N ¬ an implementation-dependent number between 32 and 63;"
+"QQ ¬ Integer(TruncateTowardZero((ST(0) / ST(1)) / 2 (D - N) ));"
+"ST(0) ¬ ST(0) – (ST(1) * QQ * 2 (D - N) );"
+"FI;"
+[3]
+"FPU Flags Affected"
+""
+"C0 Set to bit 2 (Q2) of the quotient."
+"C1 Set to 0 if stack underflow occurred; otherwise, set to least significant bit of quotient (Q0)."
+"C2 Set to 0 if reduction complete; set to 1 if incomplete."
+"C3 Set to bit 1 (Q1) of the quotient."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA Source operand is an SNaN value, modulus is 0, dividend is ¥, or unsupported format."
+"#D Source operand is a denormal value."
+"#U Result is too small for destination format."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"D9 F8 FPREM Replace ST(0) with the remainder obtained from"
+[6]
+</FPREM>
+<FPREM1>
+[1]
+"FPREM1: Partial Remainder"
+""
+"Computes the IEEE remainder obtained from dividing the value in the ST(0) register (the dividend) by the value in the ST(1) register (the divisor or modulus), and stores the result in ST(0). The remainder represents the following value: Remainder = ST(0) - (Q * ST(1))"
+"Here, Q is an integer value that is obtained by rounding the real-number quotient of [ST(0) / ST(1)] toward the nearest integer value. The magnitude of the remainder is less than half the magnitude of the modulus, unless a partial remainder was computed (as described below). This instruction produces an exact result; the precision (inexact) exception does not occur and the rounding control has no effect. The following table shows the results obtained when computing the remainder of various classes of numbers, assuming that underflow does not occur. The FPREM1 instruction computes the remainder specified in IEEE Std 754. This instruction operates differently from the FPREM instruction in the way that it rounds the quotient of ST(0) divided by ST(1) to an integer (see the “Operation” section)."
+"Like the FPREM instruction, the FPREM1 computes the remainder through iterative subtraction, but can reduce the exponent of ST(0) by no more than 63 in one execution of the instruction. If the instruction succeeds in producing a remainder that is less than one half the modulus, the operation is complete and the C2 flag in the FPU status word is cleared. Otherwise, C2 is set, and the result in ST(0) is called the partial remainder. The exponent of the partial remainder will be less than the exponent of the original dividend by at least 32. Software can re-execute the instruction (using the partial remainder in ST(0) as the dividend) until C2 is cleared. (Note that while executing such a remainder-computation loop, a higher-priority interrupting routine that needs the FPU can force a context switch in-between the instructions in the loop.) An important use of the FPREM1 instruction is to reduce the arguments of periodic functions. When reduction is complete, the instruction stores the three least-significant bits of the quotient in the C3, C1, and C0 flags of the FPU status word. This information is important in argument reduction for the tangent function (using a modulus of p/4), because it locates the original angle in the correct one of eight sectors of the unit circle."
+[2]
+"D ¬ exponent(ST(0)) – exponent(ST(1));"
+"IF D < 64"
+"THEN"
+"Q ¬ Integer(RoundTowardNearestInteger(ST(0) / ST(1)));"
+"ST(0) ¬ ST(0) – (ST(1) * Q);"
+"C2 ¬ 0;"
+"C0, C3, C1 ¬ LeastSignificantBits(Q); (* Q2, Q1, Q0 *)"
+"ELSE"
+"C2 ¬ 1;"
+"N ¬ an implementation-dependent number between 32 and 63;"
+"QQ ¬ Integer(TruncateTowardZero((ST(0) / ST(1)) / 2 (D - N) ));"
+"ST(0) ¬ ST(0) – (ST(1) * QQ * 2 (D - N) );"
+"FI;"
+[3]
+"FPU Flags Affected"
+""
+"C0 Set to bit 2 (Q2) of the quotient."
+"C1 Set to 0 if stack underflow occurred; otherwise, set to least significant bit of quotient (Q0)."
+"C2 Set to 0 if reduction complete; set to 1 if incomplete."
+"C3 Set to bit 1 (Q1) of the quotient."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA Source operand is an SNaN value, modulus (divisor) is 0, dividend is ¥, or unsupported format."
+"#D Source operand is a denormal value."
+"#U Result is too small for destination format."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"D9 F5 FPREM1 Replace ST(0) with the IEEE remainder obtained from dividing ST(0) by ST(1)"
+[6]
+</FPREM1>
+<FPTAN>
+[1]
+"FPTAN: Partial Tangent"
+""
+"Computes the tangent of the source operand in register ST(0), stores the result in ST(0), and pushes a 1.0 onto the FPU register stack. The source operand must be given in radians and must be less than ±2^63 . If the source operand is outside the acceptable range, the C2 flag in the FPU status word is set, and the value in register ST(0) remains unchanged. The instruction does not raise an exception when the source operand is out of range. It is up to the program to check the C2 flag for out-of-range conditions. Source values outside the range -2^63 to +2^63 can be reduced to the range of the instruction by subtracting an appropriate integer multiple of 2p or by using the FPREM instruction with a divisor of 2p. The value 1.0 is pushed onto the register stack after the tangent has been computed to maintain compatibility with the Intel 8087 and Intel287 math coprocessors. This operation also simplifies the calculation of other trigonometric functions. For instance, the cotangent (which is the reciprocal of the tangent) can be computed by executing a FDIVR instruction after the FPTAN instruction."
+[2]
+"IF ST(0) < 2 63"
+"THEN"
+"C2 ¬ 0;"
+"ST(0) ¬ tan(ST(0));"
+"TOP ¬ TOP - 1;"
+"ST(0) ¬ 1.0;"
+"ELSE (*source operand is out-of-range *)"
+"C2 ¬ 1;"
+"FI;"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred; set to 1 if stack overflow occurred. Indicates rounding direction if the inexact-result exception (#P) is generated: 0 = not roundup; 1 = roundup. C2 Set to 1 if source operand is outside the range -2^63 to +2^63 ; otherwise, cleared to 0. C0, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA Source operand is an SNaN value, ¥, or unsupported format."
+"#D Source operand is a denormal value."
+"#U Result is too small for destination format."
+"#P Value cannot be represented exactly in destination format."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"D9 F2 FPTAN 17-173 Replace ST(0) with its tangent and push 1 onto the FPU stack."
+[6]
+</FPTAN>
+<FRNDINT>
+[1]
+"FRNDINT: Round to Integer"
+""
+"Rounds the source value in the ST(0) register to the nearest integral value, depending on the current rounding mode (setting of the RC field of the FPU control word), and stores the result in ST(0). If the source value is ¥, the value is not changed. If the source value is not an integral value, the floating-point inexact-result exception (#P) is generated."
+[2]
+"ST(0) ¬ RoundToIntegralValue(ST(0));"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred. Indicates rounding direction if the inexact-result exception (#P) is generated: 0 = not roundup; 1 = roundup. C0, C2, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA Source operand is an SNaN value or unsupported format."
+"#D Source operand is a denormal value."
+"#P Source operand is not an integral value."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"D9 FC FRNDINT Round ST(0) to an integer."
+[6]
+</FRNDINT>
+<FRSTOR>
+[1]
+"FRSTOR: Restore FPU State"
+""
+"Loads the FPU state (operating environment and register stack) from the memory area specified with the source operand. This state data is typically written to the specified memory location by a previous FSAVE/FNSAVE instruction. The FPU operating environment consists of the FPU control word, status word, tag word, instruction pointer, data pointer, and last opcode. In virtual-8086 mode, the real mode layouts are used. The contents of the FPU register stack are stored in the 80 bytes immediately follow the operating environment image."
+"The FRSTOR instruction should be executed in the same operating mode as the corresponding FSAVE/FNSAVE instruction. If one or more unmasked exception bits are set in the new FPU status word, a floating-point exception will be generated. To avoid raising exceptions when loading a new operating environment, clear all the exception flags in the FPU status word that is being loaded."
+[2]
+"FPUControlWord ¬ SRC(FPUControlWord);"
+"FPUStatusWord ¬ SRC(FPUStatusWord);"
+"FPUTagWord ¬ SRC(FPUTagWord);"
+"FPUDataPointer ¬ SRC(FPUDataPointer);"
+"FPUInstructionPointer ¬ SRC(FPUInstructionPointer);"
+"FPULastInstructionOpcode ¬ SRC(FPULastInstructionOpcode);"
+"ST(0) ¬ SRC(ST(0));"
+"ST(1) ¬ SRC(ST(1));"
+"ST(2) ¬ SRC(ST(2));"
+"ST(3) ¬ SRC(ST(3));"
+"ST(4) ¬ SRC(ST(4));"
+"ST(5) ¬ SRC(ST(5));"
+"ST(6) ¬ SRC(ST(6));"
+"ST(7) ¬ SRC(ST(7));"
+[3]
+"FPU Flags Affected"
+""
+"The C0, C1, C2, C3 flags are loaded."
+[4]
+"Floating-Point Exceptions"
+""
+"None; however, this operation might unmask an existing exception that has been detected but not generated, because it was masked. Here, the exception is generated at the completion of the instruction."
+""
+"Protected Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register is used to access memory and it contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"DD /4 FRSTOR m94/108byte Load FPU state from m94byte or m108byte."
+[6]
+</FRSTOR>
+<FSAVE>
+<FNSAVE>
+[1]
+"FSAVE/FNSAVE: Store FPU State"
+""
+"Stores the current FPU state (operating environment and register stack) at the specified destination in memory, and then re-initializes the FPU. The FSAVE instruction checks for and handles pending unmasked floating-point exceptions before storing the FPU state; the FNSAVE instruction does not."
+"The FPU operating environment consists of the FPU control word, status word, tag word, instruction pointer, data pointer, and last opcode. In virtual-8086 mode, the real mode layouts are used. The contents of the FPU register stack are stored in the 80 bytes immediately follow the operating environment image. The saved image reflects the state of the FPU after all floating-point instructions preceding the FSAVE/FNSAVE instruction in the instruction stream have been executed. After the FPU state has been saved, the FPU is reset to the same default values it is set to with the FINIT/FNINIT instructions. The FSAVE/FNSAVE instructions are typically used when the operating system needs to perform a context switch, an exception handler needs to use the FPU, or an application program needs to pass a “clean” FPU to a procedure."
+""
+"Intel Architecture Compatibility"
+""
+"For Intel math coprocessors and FPUs prior to the Intel Pentium processor, an FWAIT instruction should be executed before attempting to read from the memory image stored with a prior FSAVE/FNSAVE instruction. This FWAIT instruction helps insure that the storage operation has been completed."
+"When operating a Pentium or Intel486 processor in MS-DOS compatibility mode, it is possible (under unusual circumstances) for an FNSAVE instruction to be interrupted prior to being executed to handle a pending FPU exception. An FNSAVE instruction cannot be interrupted in this way on a Pentium Pro processor."
+[2]
+"(* Save FPU State and Registers *)"
+"DEST(FPUControlWord) ¬ FPUControlWord;"
+"DEST(FPUStatusWord) ¬ FPUStatusWord;"
+"DEST(FPUTagWord) ¬ FPUTagWord;"
+"DEST(FPUDataPointer) ¬ FPUDataPointer;"
+"DEST(FPUInstructionPointer) ¬ FPUInstructionPointer;"
+"DEST(FPULastInstructionOpcode) ¬ FPULastInstructionOpcode;"
+"DEST(ST(0)) ¬ ST(0);"
+"DEST(ST(1)) ¬ ST(1);"
+"DEST(ST(2)) ¬ ST(2);"
+"DEST(ST(3)) ¬ ST(3);"
+"DEST(ST(4)) ¬ ST(4);"
+"DEST(ST(5)) ¬ ST(5);"
+"DEST(ST(6)) ¬ ST(6);"
+"DEST(ST(7)) ¬ ST(7);"
+"(* Initialize FPU *)"
+"FPUControlWord ¬ 037FH;"
+"FPUStatusWord ¬ 0;"
+"FPUTagWord ¬ FFFFH;"
+"FPUDataPointer ¬ 0;"
+"FPUInstructionPointer ¬ 0;"
+"FPULastInstructionOpcode ¬ 0;"
+[3]
+"FPU Flags Affected"
+""
+"The C0, C1, C2, and C3 flags are saved and then cleared."
+[4]
+"Floating-Point Exceptions"
+""
+"None."
+""
+"Protected Mode Exceptions"
+""
+"#GP(0) If destination is located in a nonwritable segment. If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register is used to access memory and it contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"9B DD /6 FSAVE m94/108byte Store FPU state to m94byte or m108byte after checking for pending unmasked floating-point exceptions. Then re-initialize the FPU."
+"DD /6 FNSAVE* m94/108byte Store FPU environment to m94byte or m108byte without checking for pending unmasked floating-point exceptions. Then re-initialize the FPU."
+[6]
+</FSAVE>
+</FNSAVE>
+<FSCALE>
+[1]
+"FSCALE: Scale"
+""
+"Multiplies the destination operand by 2 to the power of the source operand and stores the result in the destination operand. The destination operand is a real value that is located in register ST(0). The source operand is the nearest integer value that is smaller than the value in the ST(1) register (that is, the value in register ST(1) is truncated toward 0 to its nearest integer value to form the source operand). This instruction provides rapid multiplication or division by integral powers of 2 because it is implemented by simply adding an integer value (the source operand) to the exponent of the value in register ST(0)."
+"In most cases, only the exponent is changed and the mantissa (significand) remains unchanged. However, when the value being scaled in ST(0) is a denormal value, the mantissa is also changed and the result may turn out to be a normalized number. Similarly, if overflow or underflow results from a scale operation, the resulting mantissa will differ from the source’s mantissa. The FSCALE instruction can also be used to reverse the action of the FXTRACT instruction, as shown in the following example:"
+"FXTRACT;"
+"FSCALE;"
+"FSTP ST(1);"
+"In this example, the FXTRACT instruction extracts the significand and exponent from the value in ST(0) and stores them in ST(0) and ST(1) respectively. The FSCALE then scales the significand in ST(0) by the exponent in ST(1), recreating the original value before the FXTRACT operation was performed. The FSTP ST(1) instruction overwrites the exponent (extracted by the FXTRACT instruction) with the recreated value, which returns the stack to its original state with only one register [ST(0)] occupied."
+[2]
+"ST(0) ¬ ST(0) * 2 ST(1) ;"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred. Indicates rounding direction if the inexact-result exception (#P) is generated: 0 = not roundup; 1 = roundup. C0, C2, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA Source operand is an SNaN value or unsupported format."
+"#D Source operand is a denormal value."
+"#U Result is too small for destination format."
+"#O Result is too large for destination format."
+"#P Value cannot be represented exactly in destination format."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"D9 FD FSCALE Scale ST(0) by ST(1)."
+[6]
+</FSCALE>
+<FSIN>
+[1]
+"FSIN: Sine"
+""
+"Calculates the sine of the source operand in register ST(0) and stores the result in ST(0). The source operand must be given in radians and must be within the range -2^63 to +2^63. If the source operand is outside the acceptable range, the C2 flag in the FPU status word is set, and the value in register ST(0) remains unchanged. The instruction does not raise an exception when the source operand is out of range. It is up to the program to check the C2 flag for out-of-range conditions. Source values outside the range -2^63 to +2^63 can be reduced to the range of the instruction by subtracting an appropriate integer multiple of 2p or by using the FPREM instruction with a divisor of 2p."
+[2]
+"IF ST(0) < 2 63"
+"THEN"
+"C2 ¬ 0;"
+"ST(0) ¬ sin(ST(0));"
+"ELSE (* source operand out of range *)"
+"C2 ¬ 1;"
+"FI:"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred. Indicates rounding direction if the inexact-result exception (#P) is generated: 0 = not roundup; 1 = roundup. C2 Set to 1 if source operand is outside the range -2^63 to +2^63; otherwise, cleared to 0. C0, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA Source operand is an SNaN value, ¥, or unsupported format."
+"#D Source operand is a denormal value."
+"#P Value cannot be represented exactly in destination format."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"D9 FE FSIN Replace ST(0) with its sine."
+[6]
+</FSIN>
+<FSINCOS>
+[1]
+"FSINCOS: Sine and Cosine"
+""
+"Computes both the sine and the cosine of the source operand in register ST(0), stores the sine in ST(0), and pushes the cosine onto the top of the FPU register stack. (This instruction is faster than executing the FSIN and FCOS instructions in succession.) The source operand must be given in radians and must be within the range -2^63 to +2^63."
+"If the source operand is outside the acceptable range, the C2 flag in the FPU status word is set, and the value in register ST(0) remains unchanged. The instruction does not raise an exception when the source operand is out of range. It is up to the program to check the C2 flag for out-of-range conditions. Source values outside the range -2^63 to +2^63 can be reduced to the range of the instruction by subtracting an appropriate integer multiple of 2p or by using the FPREM instruction with a divisor of 2p."
+[2]
+"IF ST(0) < 2 63"
+"THEN"
+"C2 ¬ 0;"
+"TEMP ¬ cosine(ST(0));"
+"ST(0) ¬ sine(ST(0));"
+"TOP ¬ TOP - 1;"
+"ST(0) ¬ TEMP;"
+"ELSE (* source operand out of range *)"
+"C2 ¬ 1;"
+"FI:"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred; set to 1 of stack overflow occurs. Indicates rounding direction if the inexact-result exception (#P) is generated: 0 = not roundup; 1 = roundup. C2 Set to 1 if source operand is outside the range -2^63 to +2^63; otherwise, cleared to 0. C0, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA Source operand is an SNaN value, ¥, or unsupported format."
+"#D Source operand is a denormal value."
+"#U Result is too small for destination format."
+"#P Value cannot be represented exactly in destination format."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"D9 FB FSINCOS Compute the sine and cosine of ST(0); replace ST(0) with the sine, and push the cosine onto the register stack."
+[6]
+</FSINCOS>
+<FSQRT>
+[1]
+"FSQRT: Square Root"
+""
+"Calculates the square root of the source value in the ST(0) register and stores the result in ST(0)."
+[2]
+"ST(0) ¬ SquareRoot(ST(0));"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred. Indicates rounding direction if inexact-result exception (#P) is generated: 0 = not roundup; 1 = roundup. C0, C2, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA Source operand is an SNaN value or unsupported format. Source operand is a negative value (except for -0)."
+"#D Source operand is a denormal value."
+"#P Value cannot be represented exactly in destination format."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"D9 FA FSQRT Calculates square root of ST(0) and stores the result in ST(0)"
+[6]
+</FSQRT>
+<FST>
+<FSTP>
+[1]
+"FST/FSTP: Store Real"
+""
+"The FST instruction copies the value in the ST(0) register to the destination operand, which can be a memory location or another register in the FPU register stack. When storing the value in memory, the value is converted to single- or double-real format. The FSTP instruction performs the same operation as the FST instruction and then pops the register stack. To pop the register stack, the processor marks the ST(0) register as empty and increments the stack pointer (TOP) by 1. The FSTP instruction can also store values in memory in extended-real format."
+"If the destination operand is a memory location, the operand specifies the address where the first byte of the destination value is to be stored. If the destination operand is a register, the operand specifies a register in the register stack relative to the top of the stack. If the destination size is single- or double-real, the significand of the value being stored is rounded to the width of the destination (according to rounding mode specified by the RC field of the FPU control word), and the exponent is converted to the width and bias of the destination format. If the value being stored is too large for the destination format, a numeric overflow exception (#O) is generated and, if the exception is unmasked, no value is stored  in the destination operand. If the value being stored is a denormal value, the denormal exception (#D) is not generated. This condition is simply signaled as a numeric underflow exception (#U) condition. If the value being stored is ±0, ±¥, or a NaN, the least-significant bits of the significand and the exponent are truncated to fit the destination format. This operation preserves the value’s identity as a 0, ¥, or NaN. If the destination operand is a non-empty register, the invalid-operation exception is not generated."
+[2]
+"DEST ¬ ST(0);"
+"IF instruction = FSTP"
+"THEN"
+"PopRegisterStack;"
+"FI;"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred. Indicates rounding direction of if the floating-point inexact exception (#P) is generated: 0 = not roundup; 1 = roundup. C0, C2, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA Source operand is an SNaN value or unsupported format."
+"#U Result is too small for the destination format."
+"#O Result is too large for the destination format."
+"#P Value cannot be represented exactly in destination format."
+""
+"Protected Mode Exceptions"
+""
+"#GP(0) If the destination is located in a nonwritable segment. If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register is used to access memory and it contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"D9 /2 FST m32real Copy ST(0) to m32real"
+"DD /2 FST m64real Copy ST(0) to m64real"
+"DD D0+i FST ST(i) Copy ST(0) to ST(i)"
+"D9 /3 FSTP m32real Copy ST(0) to m32real and pop register stack"
+"DD /3 FSTP m64real Copy ST(0) to m64real and pop register stack"
+"DB /7 FSTP m80real Copy ST(0) to m80real and pop register stack"
+"DD D8+i FSTP ST(i) Copy ST(0) to ST(i) and pop register stack"
+[6]
+</FST>
+</FSTP>
+<FSTCW>
+<FNSTCW>
+[1]
+"FSTCW/FNSTCW: Store Control Word"
+""
+"Stores the current value of the FPU control word at the specified destination in memory. The FSTCW instruction checks for and handles pending unmasked floating-point exceptions before storing the control word; the FNSTCW instruction does not."
+""
+"Intel Architecture Compatibility"
+""
+"When operating a Pentium or Intel486 processor in MS-DOS compatibility mode, it is possible (under unusual circumstances) for an FNSTCW instruction to be interrupted prior to being executed to handle a pending FPU exception. An FNSTCW instruction cannot be interrupted in this way on a Pentium Pro processor."
+[2]
+"DEST ¬ FPUControlWord;"
+[3]
+"FPU Flags Affected"
+""
+"The C0, C1, C2, and C3 flags are undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"None."
+""
+"Protected Mode Exceptions"
+""
+"#GP(0) If the destination is located in a nonwritable segment. If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register is used to access memory and it contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"9B D9 /7 FSTCW m2byte Store FPU control word to m2byte after checking for pending unmasked floating-point exceptions."
+"D9 /7 FNSTCW m2byte Store FPU control word to m2byte without checking for pending unmasked floating-point exceptions."
+[6]
+</FSTCW>
+</FNSTCW>
+<FSTENV>
+<FNSTENV>
+[1]
+"FSTENV/FNSTENV: Store FPU Environment"
+""
+"Saves the current FPU operating environment at the memory location specified with the destination operand, and then masks all floating-point exceptions. The FPU operating environment consists of the FPU control word, status word, tag word, instruction pointer, data pointer, and last opcode. In virtual-8086 mode, the real mode layouts are used. The FSTENV instruction checks for and handles any pending unmasked floating-point exceptions before storing the FPU environment; the FNSTENV instruction does not.The saved image reflects the state of the FPU after all floating-point instructions preceding the FSTENV/FNSTENV instruction in the instruction stream have been executed."
+"These instructions are often used by exception handlers because they provide access to the FPU instruction and data pointers. The environment is typically saved in the stack. Masking all exceptions after saving the environment prevents floating-point exceptions from interrupting the exception handler."
+""
+"Intel Architecture Compatibility"
+""
+"When operating a Pentium or Intel486 processor in MS-DOS compatibility mode, it is possible (under unusual circumstances) for an FNSTENV instruction to be interrupted prior to being executed to handle a pending FPU exception. An FNSTENV instruction cannot be interrupted in this way on a Pentium Pro processor."
+[2]
+"DEST(FPUControlWord) ¬ FPUControlWord;"
+"DEST(FPUStatusWord) ¬ FPUStatusWord;"
+"DEST(FPUTagWord) ¬ FPUTagWord;"
+"DEST(FPUDataPointer) ¬ FPUDataPointer;"
+"DEST(FPUInstructionPointer) ¬ FPUInstructionPointer;"
+"DEST(FPULastInstructionOpcode) ¬ FPULastInstructionOpcode;"
+[3]
+"FPU Flags Affected"
+""
+"The C0, C1, C2, and C3 are undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"None."
+""
+"Protected Mode Exceptions"
+""
+"#GP(0) If the destination is located in a nonwritable segment. If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register is used to access memory and it contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"9B D9 /6 FSTENV m14/28byte Store FPU environment to m14byte or m28byte after checking for pending unmasked floating-point exceptions. Then mask all floating-point exceptions."
+"D9 /6 FNSTENV m14/28byte Store FPU environment to m14byte or m28byte without checking for pending unmasked floating-point exceptions. Then mask all floating-point exceptions."
+[6]
+</FSTENV>
+</FNSTENV>
+<FSTSW>
+<FNSTSW>
+[1]
+"FSTSW/FNSTSW: Store Status Word"
+""
+"Stores the current value of the FPU status word in the destination location. The destination operand can be either a two-byte memory location or the AX register. The FSTSW instruction checks for and handles pending unmasked floating-point exceptions before storing the status word; the FNSTSW instruction does not. The FNSTSW AX form of the instruction is used primarily in conditional branching (for instance, after an FPU comparison instruction or an FPREM, FPREM1, or FXAM instruction), where the direction of the branch depends on the state of the FPU condition code flags. This instruction can also be used to invoke exception handlers (by examining the exception flags) in environments that do not use interrupts. When the FNSTSW AX instruction is executed, the AX register is updated before the  processor executes any further instructions. The status stored in the AX register is thus guaranteed to be from the completion of the prior FPU instruction."
+""
+"Intel Architecture Compatibility"
+""
+"When operating a Pentium or Intel486 processor in MS-DOS compatibility mode, it is possible (under unusual circumstances) for an FNSTSW instruction to be interrupted prior to being executed to handle a pending FPU exception. An FNSTSW instruction cannot be interrupted in this way on a Pentium Pro processor."
+[2]
+"DEST ¬ FPUStatusWord;"
+[3]
+"FPU Flags Affected"
+""
+"The C0, C1, C2, and C3 are undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"None."
+""
+"Protected Mode Exceptions"
+""
+"#GP(0) If the destination is located in a nonwritable segment. If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register is used to access memory and it contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"9B DD /7 FSTSW m2byte Store FPU status word at m2byte after checking for pending unmasked floating-point exceptions."
+"9B DF E0 FSTSW AX Store FPU status word in AX register after checking for pending unmasked floating-point exceptions."
+"DD /7 FNSTSW m2byte Store FPU status word at m2byte without checking for pending unmasked floating-point exceptions."
+"DF E0 FNSTSW AX Store FPU status word in AX register without checking for pending unmasked floating-point exceptions."
+[6]
+</FSTSW>
+</FNSTSW>
+<FSUB>
+<FSUBP>
+<FISUB>
+[1]
+"FSUB/FSUBP/FISUB: Subtract"
+""
+"Subtracts the source operand from the destination operand and stores the difference in the destination location. The destination operand is always an FPU data register; the source operand can be a register or a memory location. Source operands in memory can be in single-real, double-real, word-integer, or short-integer formats. The no-operand version of the instruction subtracts the contents of the ST(0) register from the ST(1) register and stores the result in ST(1). The one-operand version subtracts the contents of a memory location (either a real or an integer value) from the contents of the ST(0) register and stores the result in ST(0). The two-operand version, subtracts the contents of the ST(0) register from the ST(i) register or vice versa."
+"The FSUBP instructions perform the additional operation of popping the FPU register stack following the subtraction. To pop the register stack, the processor marks the ST(0) register as empty and increments the stack pointer (TOP) by 1. The no-operand version of the floating-point subtract instructions always results in the register stack being popped. In some assemblers, the mnemonic for this instruction is FSUB rather than FSUBP. The FISUB instructions convert an integer source operand to extended-real format before performing the subtraction."
+"When the difference between two operands of like sign is 0, the result is +0, except for the round toward -¥ mode, in which case the result is -0. This instruction also guarantees that +0 - (-0) = +0, and that -0 - (+0) = -0. When the source operand is an integer 0, it is treated as a +0. When one operand is ¥, the result is ¥ of the expected sign. If both operands are ¥ of the same sign, an invalid-operation exception is generated."
+[2]
+"IF instruction is FISUB"
+"THEN"
+"DEST ¬ DEST - ConvertExtendedReal(SRC);"
+"ELSE (* source operand is real number *)"
+"DEST ¬ DEST - SRC;"
+"FI;"
+"IF instruction is FSUBP"
+"THEN"
+"PopRegisterStack"
+"FI;"
+[3]
+"FPU Flags Affected"
+"C1 Set to 0 if stack underflow occurred. Indicates rounding direction if the inexact-result exception (#P) fault is generated: 0 = not roundup; 1 = roundup. C0, C2, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA Operand is an SNaN value or unsupported format. Operands are infinities of like sign."
+"#D Source operand is a denormal value."
+"#U Result is too small for destination format."
+"#O Result is too large for destination format."
+"#P Value cannot be represented exactly in destination format."
+""
+"Protected Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register is used to access memory and it contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"D8 /4 FSUB m32real Subtract m32real from ST(0) and store result in ST(0)"
+"DC /4 FSUB m64real Subtract m64real from ST(0) and store result in ST(0)"
+"D8 E0+i FSUB ST(0), ST(i) Subtract ST(i) from ST(0) and store result in ST(0)"
+"DC E8+i FSUB ST(i), ST(0) Subtract ST(0) from ST(i) and store result in ST(i)"
+"DE E8+i FSUBP ST(i), ST(0) Subtract ST(0) from ST(i), store result in ST(i), and pop register stack"
+"DE E9 FSUBP Subtract ST(0) from ST(1), store result in ST(1), and pop register stack"
+"DA /4 FISUB m32int Subtract m32int from ST(0) and store result in ST(0)"
+"DE /4 FISUB m16int Subtract m16int from ST(0) and store result in ST(0)"
+[6]
+</FSUB>
+</FSUBP>
+</FISUB>
+<FSUBR>
+<FSUBRP>
+<FISUBR>
+[1]
+"FSUBR/FSUBRP/FISUBR: Reverse Subtract"
+""
+"Subtracts the destination operand from the source operand and stores the difference in the destination location. The destination operand is always an FPU register; the source operand can be a register or a memory location. Source operands in memory can be in single-real, double-real, word-integer, or short-integer formats. These instructions perform the reverse operations of the FSUB, FSUBP, and FISUB instructions. They are provided to support more efficient coding. The no-operand version of the instruction subtracts the contents of the ST(1) register from the ST(0) register and stores the result in ST(1). The one-operand version subtracts the contents of the ST(0) register from the contents of a memory location (either a real or an integer value) and stores the result in ST(0). The two-operand version, subtracts the contents of the ST(i) register from the ST(0) register or vice versa."
+"The FSUBRP instructions perform the additional operation of popping the FPU register stack following the subtraction. To pop the register stack, the processor marks the ST(0) register as empty and increments the stack pointer (TOP) by 1. The no-operand version of the floating-point reverse subtract instructions always results in the register stack being popped. In some assemblers, the mnemonic for this instruction is FSUBR rather than FSUBRP. The FISUBR instructions convert an integer source operand to extended-real format before performing the subtraction."
+"When the difference between two operands of like sign is 0, the result is +0, except for the round toward -¥ mode, in which case the result is -0. This instruction also guarantees that +0 - (-0) = +0, and that -0 - (+0) = -0. When the source operand is an integer 0, it is treated as a +0. When one operand is ¥, the result is ¥ of the expected sign. If both operands are ¥ of the same sign, an invalid-operation exception is generated."
+[2]
+"IF instruction is FISUBR"
+"THEN"
+"DEST ¬ ConvertExtendedReal(SRC) - DEST;"
+"ELSE (* source operand is real number *)"
+"DEST ¬ SRC - DEST;"
+"FI;"
+"IF instruction = FSUBRP"
+"THEN"
+"PopRegisterStack"
+"FI;"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred. Indicates rounding direction if the inexact-result exception (#P) fault is generated: 0 = not roundup; 1 = roundup. C0, C2, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA Operand is an SNaN value or unsupported format. Operands are infinities of like sign."
+"#D Source operand is a denormal value."
+"#U Result is too small for destination format."
+"#O Result is too large for destination format."
+"#P Value cannot be represented exactly in destination format."
+""
+"Protected Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register is used to access memory and it contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#NM EM or TS in CR0 is set."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"D8 /5 FSUBR m32real Subtract ST(0) from m32real and store result in ST(0)"
+"DC /5 FSUBR m64real Subtract ST(0) from m64real and store result in ST(0)"
+"D8 E8+i FSUBR ST(0), ST(i) Subtract ST(0) from ST(i) and store result in ST(0)"
+"DC E0+i FSUBR ST(i), ST(0) Subtract ST(i) from ST(0) and store result in ST(i)"
+"DE E0+i FSUBRP ST(i), ST(0) Subtract ST(i) from ST(0), store result in ST(i), and pop register stack"
+"DE E1 FSUBRP Subtract ST(1) from ST(0), store result in ST(1), and pop register stack"
+"DA /5 FISUBR m32int Subtract ST(0) from m32int and store result in ST(0)"
+"DE /5 FISUBR m16int Subtract ST(0) from m16int and store result in ST(0)"
+[6]
+</FSUBR>
+</FSUBRP>
+</FISUBR>
+<FTST>
+[1]
+"FTST: TEST"
+""
+"Compares the value in the ST(0) register with 0.0 and sets the condition code flags C0, C2, and C3 in the FPU status word according to the results. This instruction performs an “unordered comparison.” An unordered comparison also checks the class of the numbers being compared. If the value in register ST(0) is a NaN or is in an undefined format, the condition flags are set to “unordered” and the invalid operation exception is generated. The sign of zero is ignored, so that –0.0 = +0.0."
+[2]
+"CASE (relation of operands) OF"
+"Not comparable: C3, C2, C0 ¬ 111;"
+"ST(0) > 0.0: C3, C2, C0 ¬ 000;"
+"ST(0) < 0.0: C3, C2, C0 ¬ 001;"
+"ST(0) = 0.0: C3, C2, C0 ¬ 100;"
+"ESAC;"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred; otherwise, cleared to 0. C0, C2, C3 according to tables."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA The source operand is a NaN value or is in an unsupported format."
+"#D The source operand is a denormal value."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"D9 E4 FTST Compare ST(0) with 0.0."
+[6]
+</FTST>
+<FUCOM>
+<FUCOMP>
+<FUCOMPP>
+[1]
+"FUCOM/FUCOMP/FUCOMPP: Unordered Compare Real"
+""
+"Performs an unordered comparison of the contents of register ST(0) and ST(i) and sets condition code flags C0, C2, and C3 in the FPU status word according to the results. If no operand is specified, the contents of registers ST(0) and ST(1) are compared. The sign of zero is ignored, so that –0.0 = +0.0."
+"An unordered comparison checks the class of the numbers being compared. The FUCOM instructions perform the same operations as the FCOM instructions. The only difference is that the FUCOM instructions raise the invalid-arithmetic-operand exception (#IA) only when either or both operands are an SNaN or are in an unsupported format; QNaNs cause the condition code flags to be set to unordered, but do not cause an exception to be generated. The FCOM instructions raise an invalid-operation exception when either or both of the operands are a NaN value of any kind or are in an unsupported format. As with the FCOM instructions, if the operation results in an invalid-arithmetic-operand exception being raised, the condition code flags are set only if the exception is masked. The FUCOMP instruction pops the register stack following the comparison operation and the FUCOMPP instruction pops the register stack twice following the comparison operation. To pop the register stack, the processor marks the ST(0) register as empty and increments the stack pointer (TOP) by 1."
+[2]
+"CASE (relation of operands) OF"
+"ST > SRC: C3, C2, C0 ¬ 000;"
+"ST < SRC: C3, C2, C0 ¬ 001;"
+"ST = SRC: C3, C2, C0 ¬ 100;"
+"ESAC;"
+"IF ST(0) or SRC = QNaN, but not SNaN or unsupported format"
+"THEN"
+"C3, C2, C0 ¬ 111;"
+"ELSE (* ST(0) or SRC is SNaN or unsupported format *)"
+"#IA;"
+"IF FPUControlWord.IM = 1"
+"THEN"
+"C3, C2, C0 ¬ 111;"
+"FI;"
+"FI;"
+"IF instruction = FUCOMP"
+"THEN"
+"PopRegisterStack;"
+"FI;"
+"IF instruction = FUCOMPP"
+"THEN"
+"PopRegisterStack;"
+"PopRegisterStack;"
+"FI;"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred. C0, C2, C3 according to table."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA One or both operands are SNaN values or have unsupported formats. Detection of a QNaN value in and of itself does not raise an invalid-operand exception."
+"#D One or both operands are denormal values."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"DD E0+i FUCOM ST(i) Compare ST(0) with ST(i)"
+"DD E1 FUCOM Compare ST(0) with ST(1)"
+"DD E8+i FUCOMP ST(i) Compare ST(0) with ST(i) and pop register stack"
+"DD E9 FUCOMP Compare ST(0) with ST(1) and pop register stack"
+"DA E9 FUCOMPP Compare ST(0) with ST(1) and pop register stack twice"
+[6]
+</FUCOM>
+</FUCOMP>
+</FUCOMPP>
+<FWAIT>
+[1]
+"FWAIT: Wait"
+""
+"Causes the processor to check for and handle pending, unmasked, floating-point exceptions before proceeding. (FWAIT is an alternate mnemonic for the WAIT). This instruction is useful for synchronizing exceptions in critical sections of code. Coding a WAIT instruction after a floating-point instruction insures that any unmasked floating-point exceptions the instruction may raise are handled before the processor can modify the instruction's results."
+[2]
+"CheckForPendingUnmaskedFloatingPointExceptions;"
+[3]
+"The C0, C1, C2, and C3 flags are undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"None."
+""
+"Protected Mode Exceptions"
+""
+"#NM MP and TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM MP and TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM MP and TS in CR0 is set."
+[5]
+"9B FWAIT Check pending unmasked floating-point exceptions."
+[6]
+</FWAIT>
+<FXAM>
+[1]
+"FXAM: Examine"
+""
+"Examines the contents of the ST(0) register and sets the condition code flags C0, C2, and C3 in the FPU status word to indicate the class of value or number in the register. The C1 flag is set to the sign of the value in ST(0), regardless of whether the register is empty or full."
+[2]
+"C1 ¬ sign bit of ST; (* 0 for positive, 1 for negative *)"
+"CASE (class of value or number in ST(0)) OF"
+"Unsupported:C3, C2, C0 ¬ 000;"
+"NaN: C3, C2, C0 ¬ 001;"
+"Normal: C3, C2, C0 ¬ 010;"
+"Infinity: C3, C2, C0 ¬ 011;"
+"Zero: C3, C2, C0 ¬ 100;"
+"Empty: C3, C2, C0 ¬ 101;"
+"Denormal: C3, C2, C0 ¬ 110;"
+"ESAC;"
+[3]
+"FPU Flags Affected"
+""
+"C1 Sign of value in ST(0). C0, C2, C3 according to table."
+[4]
+"Floating-Point Exceptions"
+""
+"None."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"D9 E5 FXAM Classify value or number in ST(0)"
+[6]
+</FXAM>
+<FXCH>
+[1]
+"FXCH: Exchange Register Contents"
+""
+"Exchanges the contents of registers ST(0) and ST(i). If no source operand is specified, the contents of ST(0) and ST(1) are exchanged. This instruction provides a simple means of moving values in the FPU register stack to the top of the stack [ST(0)], so that they can be operated on by those floating-point instructions that can only operate on values in ST(0). For example, the following instruction sequence takes the square root of the third register from the top of the register stack:"
+"FXCH ST(3);"
+"FSQRT;"
+"FXCH ST(3);"
+[2]
+"IF number-of-operands is 1"
+"THEN"
+"temp ¬ ST(0);"
+"ST(0) ¬ SRC;"
+"SRC ¬ temp;"
+"ELSE"
+"temp ¬ ST(0);"
+"ST(0) ¬ ST(1);"
+"ST(1) ¬ temp;"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred; otherwise, cleared to 0. C0, C2, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"D9 C8+i FXCH ST(i) Exchange the contents of ST(0) and ST(i)"
+"D9 C9 FXCH Exchange the contents of ST(0) and ST(1)"
+[6]
+</FXCH>
+<FXTRACT>
+[1]
+"FXTRACT: Extract Exponent and Significand"
+""
+"Separates the source value in the ST(0) register into its exponent and significand, stores the exponent in ST(0), and pushes the significand onto the register stack. Following this operation, the new top-of-stack register ST(0) contains the value of the original significand expressed as a real number. The sign and significand of this value are the same as those found in the source operand, and the exponent is 3FFFH (biased value for a true exponent of zero). The ST(1) register contains the value of the original operand’s true (unbiased) exponent expressed as a real number. (The operation performed by this instruction is a superset of the IEEE-recommended logb(x) function.)"
+"This instruction and the F2XM1 instruction are useful for performing power and range scaling operations. The FXTRACT instruction is also useful for converting numbers in extended-real format to decimal representations (e.g., for printing or displaying). If the floating-point zero-divide exception (#Z) is masked and the source operand is zero, an exponent value of –¥ is stored in register ST(1) and 0 with the sign of the source operand is stored in register ST(0)."
+[2]
+"TEMP ¬ Significand(ST(0));"
+"ST(0) ¬ Exponent(ST(0));"
+"TOP¬ TOP - 1;"
+"ST(0) ¬ TEMP;"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred; set to 1 if stack overflow occurred. C0, C2, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred. Stack overflow occurred."
+"#IA Source operand is an SNaN value or unsupported format."
+"#Z ST(0) operand is ±0."
+"#D Source operand is a denormal value."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"D9 F4 FXTRACT Separate value in ST(0) into exponent and significand, store exponent in ST(0), and push the significand onto the register stack."
+[6]
+</FXTRACT>
+<FYL2X>
+[1]
+"FYL2X: Compute y * log{2}x (Base of logarithm = 2)"
+""
+"Calculates (ST(1) * log{2}(ST(0))), stores the result in resister ST(1), and pops the FPU register stack. The source operand in ST(0) must be a non-zero positive number. The FYL2X instruction is designed with a built-in multiplication to optimize the calculation of logarithms with an arbitrary positive base (b):"
+"log{b}x = (log{2}b) –1 * log{2}x"
+[2]
+"ST(1) ¬ ST(1) * log{2}ST(0);"
+"PopRegisterStack;"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred. Indicates rounding direction if the inexact-result exception (#P) is generated: 0 = not roundup; 1 = roundup. C0, C2, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA Either operand is an SNaN or unsupported format. Source operand in register ST(0) is a negative finite value (not -0)."
+"#Z Source operand in register ST(0) is ±0."
+"#D Source operand is a denormal value."
+"#U Result is too small for destination format."
+"#O Result is too large for destination format."
+"#P Value cannot be represented exactly in destination format."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"D9 F1 FYL2X Replace ST(1) with (ST(1) * log{2}ST(0)) and pop the register stack"
+[6]
+</FYL2X>
+<FYL2XP1>
+[1]
+"FYL2XP1: Compute y * log{2}(x +1)"
+""
+"Calculates the log epsilon (ST(1) * log{2}(ST(0) + 1.0)), stores the result in register ST(1), and pops the FPU register stack. The source operand in ST(0) must be in the range: The source operand in ST(1) can range from -¥ to +¥. If the ST(0) operand is outside of its acceptable range, the result is undefined and software should not rely on an exception being generated. Under some circumstances exceptions may be generated when ST(0) is out of range, but this behavior is implementation specific and not guaranteed."
+"This instruction provides optimal accuracy for values of epsilon [the value in register ST(0)] that are close to 0. When the epsilon value (e) is small, more significant digits can be retained by using the FYL2XP1 instruction than by using (e+1) as an argument to the FYL2X instruction. The (e+1) expression is commonly found in compound interest and annuity calculations. The result can be simply converted into a value in another logarithm base by including a scale factor in the ST(1) source operand. The following equation is used to calculate the scale factor for a particular logarithm base, where n is the logarithm base desired for the result of the FYL2XP1 instruction:"
+"scale factor = log{n}2"
+[2]
+"ST(1) ¬ ST(1) * log{2}(ST(0) + 1.0);"
+"PopRegisterStack;"
+[3]
+"FPU Flags Affected"
+""
+"C1 Set to 0 if stack underflow occurred. Indicates rounding direction if the inexact-result exception (#P) is generated: 0 = not roundup; 1 = roundup. C0, C2, C3 Undefined."
+[4]
+"Floating-Point Exceptions"
+""
+"#IS Stack underflow occurred."
+"#IA Either operand is an SNaN value or unsupported format."
+"#D Source operand is a denormal value."
+"#U Result is too small for destination format."
+"#O Result is too large for destination format."
+"#P Value cannot be represented exactly in destination format."
+""
+"Protected Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Real-Address Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#NM EM or TS in CR0 is set."
+[5]
+"D9 F9 FYL2XP1 Replace ST(1) with ST(1) * log{2}(ST(0) + 1.0) and pop the register stack"
+[6]
+</FYL2XP1>
+<FS:>
+[1]
+"Internal disassembler's symbol which indicates that the next command is used with the FS: segment."
+[2]
+"Í/Á"
+[3]
+"Í/Á"
+[4]
+"Í/Á"
+[5]
+"N/A"
+[6]
+</FS:>

@@ -1,0 +1,14 @@
+NAME         conthelp.plw
+
+DESCRIPTION 'Context instruction set reference plugin'
+
+;CODE         PRELOAD MOVEABLE DISCARDABLE
+;DATA         PRELOAD MOVEABLE MULTIPLE
+
+EXETYPE      WINDOWS
+STUB	     'nullstub.bin'
+
+HEAPSIZE     65536
+STACKSIZE    65536
+
+EXPORTS      PLUGIN

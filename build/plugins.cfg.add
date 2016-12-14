@@ -1,0 +1,12 @@
+; Conthelp
+       Get_context_help			conthelp	Alt-0           0
+       Get_instruction_description	conthelp        Alt-1           1
+       Get_instruction_operation	conthelp        Alt-2           2
+       Get_instruction_flags		conthelp        Alt-3           3
+       Get_instruction_exceptions	conthelp        Alt-4           4
+       Get_instruction_opcode		conthelp        Alt-5           5
+       Get_instruction_description	conthelp        Alt-6           6
+       Get_instruction_operation	conthelp        Alt-7           7
+       Get_instruction_flags		conthelp        Alt-8           8
+       Get_instruction_exceptions	conthelp        Alt-9           9
+       Get_instruction_opcode		conthelp        Alt-\           10

@@ -1,0 +1,853 @@
+<SAHF>
+[1]
+"SAHF: Store AH into Flags"
+""
+"Loads the SF, ZF, AF, PF, and CF flags of the EFLAGS register with values from the corresponding bits in the AH register (bits 7, 6, 4, 2, and 0, respectively). Bits 1, 3, and 5 of register AH are ignored; the corresponding reserved bits (1, 3, and 5) in the EFLAGS register remain as shown in the “Operation” section."
+[2]
+"EFLAGS(SF:ZF:0:AF:0:PF:1:CF) ¬ AH;"
+[3]
+"The SF, ZF, AF, PF, and CF flags are loaded with values from the AH register. Bits 1, 3, and 5 of the EFLAGS register are unaffected, with the values remaining 1, 0, and 0, respectively."
+[4]
+"(All Operating Modes)"
+"None."
+[5]
+"9E SAHF 2 Loads SF, ZF, AF, PF, and CF from AH into EFLAGS register"
+[6]
+</SAHF>
+<SAL>
+<SAR>
+<SHL>
+<SHR>
+[1]
+"SAL/SAR/SHL/SHR: Shift"
+""
+"Shifts the bits in the first operand (destination operand) to the left or right by the number of bits specified in the second operand (count operand). Bits shifted beyond the destination operand boundary are first shifted into the CF flag, then discarded. At the end of the shift operation, the CF flag contains the last bit shifted out of the destination operand. The destination operand can be a register or a memory location. The count operand can be an immediate value or register CL. The count is masked to 5 bits, which limits the count range to 0 to 31. A special opcode encoding is provided for a count of 1."
+"The shift arithmetic left (SAL) and shift logical left (SHL) instructions perform the same operation; they shift the bits in the destination operand to the left (toward more significant bit locations). For each shift count, the most significant bit of the destination operand is shifted into the CF flag, and the least significant bit is cleared."
+"The shift arithmetic right (SAR) and shift logical right (SHR) instructions shift the bits of the destination operand to the right (toward less significant bit locations). For each shift count, the least significant bit of the destination operand is shifted into the CF flag, and the most significant bit is either set or cleared depending on the instruction type. The SHR instruction clears the most significant bit; the SAR instruction sets or clears the most significant bit to correspond to the sign (most significant bit) of the original value in the destination operand. In effect, the SAR instruction fills the empty bit position’s shifted value with the sign of the unshifted value."
+"The SAR and SHR instructions can be used to perform signed or unsigned division, respectively, of the destination operand by powers of 2. For example, using the SAR instruction to shift a signed integer 1 bit to the right divides the value by 2. Using the SAR instruction to perform a division operation does not produce the same result as the IDIV instruction. The quotient from the IDIV instruction is rounded toward zero, whereas the “quotient” of the SAR instruction is rounded toward negative infinity. This difference is apparent only for negative numbers. For example, when the IDIV instruction is used to divide -9 by 4, the result is -2 with a remainder of -1. If the SAR instruction is used to shift -9 right by two bits, the result is -3 and the “remainder” is +3; however, the SAR instruction stores only the most significant bit of the remainder (in the CF flag)."
+"The OF flag is affected only on 1-bit shifts. For left shifts, the OF flag is cleared to 0 if the most-significant bit of the result is the same as the CF flag (that is, the top two bits of the original operand were the same); otherwise, it is set to 1. For the SAR instruction, the OF flag is cleared for all 1-bit shifts. For the SHR instruction, the OF flag is set to the most-significant bit of the original operand."
+""
+"Intel Architecture Compatibility"
+""
+"The 8086 does not mask the shift count. However, all other Intel Architecture processors (starting with the Intel 286 processor) do mask the shift count to 5 bits, resulting in a maximum count of 31. This masking is done in all operating modes (including the virtual-8086 mode) to reduce the maximum execution time of the instructions."
+[2]
+"tempCOUNT ¬ (COUNT AND 1FH);"
+"tempDEST ¬ DEST;"
+"WHILE (tempCOUNT ¹ 0)"
+"DO"
+"IF instruction is SAL or SHL"
+"THEN"
+"CF ¬ MSB(DEST);"
+"ELSE (* instruction is SAR or SHR *)"
+"CF ¬ LSB(DEST);"
+"FI;"
+"IF instruction is SAL or SHL"
+"THEN"
+"DEST ¬ DEST * 2;"
+"ELSE"
+"IF instruction is SAR"
+"THEN"
+"DEST ¬ DEST / 2 (*Signed divide, rounding toward negative infinity*);"
+"ELSE (* instruction is SHR *)"
+"DEST ¬ DEST / 2 ; (* Unsigned divide *);"
+"FI;"
+"FI;"
+"tempCOUNT ¬ tempCOUNT – 1;"
+"OD;"
+"(* Determine overflow for the various instructions *)"
+"IF COUNT = 1"
+"THEN"
+"IF instruction is SAL or SHL"
+"THEN"
+"OF ¬ MSB(DEST) XOR CF;"
+"ELSE"
+"IF instruction is SAR"
+"THEN"
+"OF ¬ 0;"
+"ELSE (* instruction is SHR *)"
+"OF ¬ MSB(tempDEST);"
+"FI;"
+"FI;"
+"ELSE IF COUNT = 0"
+"THEN"
+"All flags remain unchanged;"
+"ELSE (* COUNT neither 1 or 0 *)"
+"OF ¬ undefined;"
+"FI;"
+"FI;"
+[3]
+"The CF flag contains the value of the last bit shifted out of the destination operand; it is undefined for SHL and SHR instructions where the count is greater than or equal to the size (in bits) of the destination operand. The OF flag is affected only for 1-bit shifts (see “Description”); otherwise, it is undefined. The SF, ZF, and PF flags are set according to the result. If the count is 0, the flags are not affected. For a non-zero count, the AF flag is undefined."
+[4]
+"Protected Mode Exceptions"
+""
+"#GP(0) If the destination is located in a nonwritable segment. If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"NOTE:"
+"* Not the same form of division as IDIV; rounding is toward negative infinity."
+""
+"D0 /4 SAL r/m8,1 Multiply r/m8 by 2, once"
+"D2 /4 SAL r/m8,CL Multiply r/m8 by 2, CL times"
+"C0 /4 ib SAL r/m8,imm8 Multiply r/m8 by 2, imm8 times"
+"D1 /4 SAL r/m16,1 Multiply r/m16 by 2, once"
+"D3 /4 SAL r/m16,CL Multiply r/m16 by 2, CL times"
+"C1 /4 ib SAL r/m16,imm8 Multiply r/m16 by 2, imm8 times"
+"D1 /4 SAL r/m32,1 Multiply r/m32 by 2, once"
+"D3 /4 SAL r/m32,CL Multiply r/m32 by 2, CL times"
+"C1 /4 ib SAL r/m32,imm8 Multiply r/m32 by 2, imm8 times"
+"D0 /7 SAR r/m8,1 Signed divide* r/m8 by 2, once"
+"D2 /7 SAR r/m8,CL Signed divide* r/m8 by 2, CL times"
+"C0 /7 ib SAR r/m8,imm8 Signed divide* r/m8 by 2, imm8 times"
+"D1 /7 SAR r/m16,1 Signed divide* r/m16 by 2, once"
+"D3 /7 SAR r/m16,CL Signed divide* r/m16 by 2, CL times"
+"C1 /7 ib SAR r/m16,imm8 Signed divide* r/m16 by 2, imm8 times"
+"D1 /7 SAR r/m32,1 Signed divide* r/m32 by 2, once"
+"D3 /7 SAR r/m32,CL Signed divide* r/m32 by 2, CL times"
+"C1 /7 ib SAR r/m32,imm8 Signed divide* r/m32 by 2, imm8 times"
+"D0 /4 SHL r/m8,1 Multiply r/m8 by 2, once"
+"D2 /4 SHL r/m8,CL Multiply r/m8 by 2, CL times"
+"C0 /4 ib SHL r/m8,imm8 Multiply r/m8 by 2, imm8 times"
+"D1 /4 SHL r/m16,1 Multiply r/m16 by 2, once"
+"D3 /4 SHL r/m16,CL Multiply r/m16 by 2, CL times"
+"C1 /4 ib SHL r/m16,imm8 Multiply r/m16 by 2, imm8 times"
+"D1 /4 SHL r/m32,1 Multiply r/m32 by 2, once"
+"D3 /4 SHL r/m32,CL Multiply r/m32 by 2, CL times"
+"C1 /4 ib SHL r/m32,imm8 Multiply r/m32 by 2, imm8 times"
+"D0 /5 SHR r/m8,1 Unsigned divide r/m8 by 2, once"
+"D2 /5 SHR r/m8,CL Unsigned divide r/m8 by 2, CL times"
+"C0 /5 ib SHR r/m8,imm8 Unsigned divide r/m8 by 2, imm8 times"
+"D1 /5 SHR r/m16,1 Unsigned divide r/m16 by 2, once"
+"D3 /5 SHR r/m16,CL Unsigned divide r/m16 by 2, CL times"
+"C1 /5 ib SHR r/m16,imm8 Unsigned divide r/m16 by 2, imm8 times"
+"D1 /5 SHR r/m32,1 Unsigned divide r/m32 by 2, once"
+"D3 /5 SHR r/m32,CL Unsigned divide r/m32 by 2, CL times"
+"C1 /5 ib SHR r/m32,imm8 Unsigned divide r/m32 by 2, imm8 times"
+[6]
+</SAL>
+</SAR>
+</SHL>
+</SHR>
+<SBB>
+[1]
+"SBB: Integer Subtraction with Borrow"
+""
+"Adds the source operand (second operand) and the carry (CF) flag, and subtracts the result from the destination operand (first operand). The result of the subtraction is stored in the destination operand. The destination operand can be a register or a memory location; the source operand can be an immediate, a register, or a memory location. (However, two memory operands cannot be used in one instruction.) The state of the CF flag represents a borrow from a previous subtraction. When an immediate value is used as an operand, it is sign-extended to the length of the destination operand format."
+"The SBB instruction does not distinguish between signed or unsigned operands. Instead, the processor evaluates the result for both data types and sets the OF and CF flags to indicate a borrow in the signed or unsigned result, respectively. The SF flag indicates the sign of the signed result. The SBB instruction is usually executed as part of a multibyte or multiword subtraction in which a SUB instruction is followed by a SBB instruction."
+[2]
+"DEST ¬ DEST – (SRC + CF);"
+[3]
+"The OF, SF, ZF, AF, PF, and CF flags are set according to the result."
+[4]
+"Protected Mode Exceptions"
+""
+"#GP(0) If the destination is located in a nonwritable segment. If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"1C ib SBB AL, imm8 Subtract with borrow imm8 from AL"
+"1D iw SBB AX, imm16 Subtract with borrow imm16 from AX"
+"1D id SBB EAX, imm32 Subtract with borrow imm32 from EAX"
+"80 /3 ib SBB r/m8,imm8 Subtract with borrow imm8 from r/m8"
+"81 /3 iw SBB r/m16,imm16 Subtract with borrow imm16 from r/m16"
+"81 /3 id SBB r/m32,imm32 Subtract with borrow imm32 from r/m32"
+"83 /3 ib SBB r/m16,imm8 Subtract with borrow sign-extended imm8 from r/m16"
+"83 /3 ib SBB r/m32,imm8 Subtract with borrow sign-extended imm8 from r/m32"
+"18 / r SBB r/m8,r8 Subtract with borrow r8 from r/m8"
+"19 / r SBB r/m16,r16 Subtract with borrow r16 from r/m16"
+"19 / r SBB r/m32,r32 Subtract with borrow r32 from r/m32"
+"1A / r SBB r8,r/m8 Subtract with borrow r/m8 from r8"
+"1B / r SBB r16,r/m16 Subtract with borrow r/m16 from r16"
+"1B / r SBB r32,r/m32 Subtract with borrow r/m32 from r32"
+[6]
+</SBB>
+<SCAS>
+<SCASB>
+<SCASD>
+<SCASW>
+[1]
+"SCAS/SCASB/SCASW/SCASD: Scan String"
+""
+"Compares the byte, word, or double word specified with the memory operand with the value in the AL, AX, or EAX register, and sets the status flags in the EFLAGS register according to the results. The memory operand address is read from either the ES:EDI or the ES:DI registers (depending on the address-size attribute of the instruction, 32 or 16, respectively). The ES segment cannot be overridden with a segment override prefix. At the assembly-code level, two forms of this instruction are allowed: the “explicit-operands” form and the “no-operands” form. The explicit-operand form (specified with the SCAS mnemonic) allows the memory operand to be specified explicitly. Here, the memory operand should be a symbol that indicates the size and location of the operand value. The register operand is then automatically selected to match the size of the memory operand (the AL register for byte comparisons, AX for word comparisons, and EAX for doubleword comparisons). This explicit-operand form is provided to allow documentation; however, note that the documentation provided by this form can be misleading. That is, the memory operand symbol must specify the correct type (size) of the operand (byte, word, or doubleword), but it does not have to specify the correct location. The location is always specified by the ES:(E)DI registers, which must be loaded correctly before the compare string instruction is executed."
+"The no-operands form provides “short forms” of the byte, word, and doubleword versions of the SCAS instructions. Here also ES:(E)DI is assumed to be the memory operand and the AL, AX, or EAX register is assumed to be the register operand. The size of the two operands is selected with the mnemonic: SCASB (byte comparison), SCASW (word comparison), or SCASD (doubleword comparison)."
+"After the comparison, the (E)DI register is incremented or decremented automatically according to the setting of the DF flag in the EFLAGS register. (If the DF flag is 0, the (E)DI register is incremented; if the DF flag is 1, the (E)DI register is decremented.) The (E)DI register is incremented or decremented by 1 for byte operations, by 2 for word operations, or by 4 for double-word operations."
+"The SCAS, SCASB, SCASW, and SCASD instructions can be preceded by the REP prefix for block comparisons of ECX bytes, words, or doublewords. More often, however, these instructions will be used in a LOOP construct that takes some action based on the setting of the status flags before the next comparison is made."
+[2]
+"IF (byte cmparison)"
+"THEN"
+"temp ¬ AL - SRC;"
+"SetStatusFlags(temp);"
+"THEN IF DF = 0"
+"THEN (E)DI ¬ (E)DI + 1;"
+"ELSE (E)DI ¬ (E)DI – 1;"
+"FI;"
+"ELSE IF (word comparison)"
+"THEN"
+"temp ¬ AX - SRC;"
+"SetStatusFlags(temp)"
+"THEN IF DF = 0"
+"THEN (E)DI ¬ (E)DI + 2;"
+"ELSE (E)DI ¬ (E)DI – 2;"
+"FI;"
+"ELSE (* doubleword comparison *)"
+"temp ¬ EAX - SRC;"
+"SetStatusFlags(temp)"
+"THEN IF DF = 0"
+"THEN (E)DI ¬ (E)DI + 4;"
+"ELSE (E)DI ¬ (E)DI – 4;"
+"FI;"
+"FI;"
+"FI;"
+[3]
+"The OF, SF, ZF, AF, PF, and CF flags are set according to the temporary result of the comparison."
+[4]
+"Protected Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the limit of the ES segment. If the ES register contains a null segment selector. If an illegal memory operand effective address in the ES segment is given."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"AE SCAS m8 Compare AL with byte at ES:(E)DI and set status flags"
+"AF SCAS m16 Compare AX with word at ES:(E)DI and set status flags"
+"AF SCAS m32 Compare EAX with doubleword at ES(E)DI and set status flags"
+"AE SCASB Compare AL with byte at ES:(E)DI and set status flags"
+"AF SCASW Compare AX with word at ES:(E)DI and set status flags"
+"AF SCASD Compare EAX with doubleword at ES:(E)DI and set status flags"
+[6]
+</SCAS>
+</SCASB>
+</SCASD>
+</SCASW>
+<SET>
+<SETA>
+<SETAE>
+<SETB>
+<SETBE>
+<SETC>
+<SETE>
+<SETG>
+<SETGE>
+<SETL>
+<SETLE>
+<SETNA>
+<SETNAE>
+<SETNB>
+<SETNBE>
+<SETNC>
+<SETNE>
+<SETNG>
+<SETNGE>
+<SETNL>
+<SETNLE>
+<SETNO>
+<SETNP>
+<SETNS>
+<SETNZ>
+<SETO>
+<SETP>
+<SETPE>
+<SETPO>
+<SETS>
+<SETZ>
+[1]
+"SET cc: Set Byte on Condition"
+""
+"Set the destination operand to 0 or 1 depending on the settings of the status flags (CF, SF, OF, ZF, and PF) in the EFLAGS register. The destination operand points to a byte register or a byte in memory. The condition code suffix (cc) indicates the condition being tested for. The terms “above” and “below” are associated with the CF flag and refer to the relationship between two unsigned integer values. The terms “greater” and “less” are associated with the SF and OF flags and refer to the relationship between two signed integer values."
+"Many of the SETcc instruction opcodes have alternate mnemonics. For example, the SETG (set byte if greater) and SETNLE (set if not less or equal) both have the same opcode and test for the same condition: ZF equals 0 and SF equals OF. These alternate mnemonics are provided to make code more intelligible. Some languages represent a logical one as an integer with all bits set. This representation can be obtained by choosing the logically opposite condition for the SETcc instruction, then decrementing the result. For example, to test for overflow, use the SETNO instruction, then decrement the result."
+[2]
+"IF condition"
+"THEN DEST ¬ 1"
+"ELSE DEST ¬ 0;"
+"FI;"
+[3]
+"None."
+[4]
+"Protected Mode Exceptions"
+""
+"#GP(0) If the destination is located in a nonwritable segment. If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+[5]
+"0F 97 SETA r/m8 Set byte if above (CF=0 and ZF=0)"
+"0F 93 SETAE r/m8 Set byte if above or equal (CF=0)"
+"0F 92 SETB r/m8 Set byte if below (CF=1)"
+"0F 96 SETBE r/m8 Set byte if below or equal (CF=1 or ZF=1)"
+"0F 92 SETC r/m8 Set if carry (CF=1)"
+"0F 94 SETE r/m8 Set byte if equal (ZF=1)"
+"0F 9F SETG r/m8 Set byte if greater (ZF=0 and SF=OF)"
+"0F 9D SETGE r/m8 Set byte if greater or equal (SF=OF)"
+"0F 9C SETL r/m8 Set byte if less (SF<>OF)"
+"0F 9E SETLE r/m8 Set byte if less or equal (ZF=1 or SF<>OF)"
+"0F 96 SETNA r/m8 Set byte if not above (CF=1 or ZF=1)"
+"0F 92 SETNAE r/m8 Set byte if not above or equal (CF=1)"
+"0F 93 SETNB r/m8 Set byte if not below (CF=0)"
+"0F 97 SETNBE r/m8 Set byte if not below or equal (CF=0 and ZF=0)"
+"0F 93 SETNC r/m8 Set byte if not carry (CF=0)"
+"0F 95 SETNE r/m8 Set byte if not equal (ZF=0)"
+"0F 9E SETNG r/m8 Set byte if not greater (ZF=1 or SF<>OF)"
+"0F 9C SETNGE r/m8 Set if not greater or equal (SF<>OF)"
+"0F 9D SETNL r/m8 Set byte if not less (SF=OF)"
+"0F 9F SETNLE r/m8 Set byte if not less or equal (ZF=0 and SF=OF)"
+"0F 91 SETNO r/m8 Set byte if not overflow (OF=0)"
+"0F 9B SETNP r/m8 Set byte if not parity (PF=0)"
+"0F 99 SETNS r/m8 Set byte if not sign (SF=0)"
+"0F 95 SETNZ r/m8 Set byte if not zero (ZF=0)"
+"0F 90 SETO r/m8 Set byte if overflow (OF=1)"
+"0F 9A SETP r/m8 Set byte if parity (PF=1)"
+"0F 9A SETPE r/m8 Set byte if parity even (PF=1)"
+"0F 9B SETPO r/m8 Set byte if parity odd (PF=0)"
+"0F 98 SETS r/m8 Set byte if sign (SF=1)"
+"0F 94 SETZ r/m8 Set byte if zero (ZF=1)"
+[6]
+</SET>
+</SETA>
+</SETAE>
+</SETB>
+</SETBE>
+</SETC>
+</SETE>
+</SETG>
+</SETGE>
+</SETL>
+</SETLE>
+</SETNA>
+</SETNAE>
+</SETNB>
+</SETNBE>
+</SETNC>
+</SETNE>
+</SETNG>
+</SETNGE>
+</SETNL>
+</SETNLE>
+</SETNO>
+</SETNP>
+</SETNS>
+</SETNZ>
+</SETO>
+</SETP>
+</SETPE>
+</SETPO>
+</SETS>
+</SETZ>
+<SGDT>
+<SIDT>
+[1]
+"SGDT/SIDT: Store Global/Interrupt Descriptor Table Register"
+""
+"Stores the contents of the global descriptor table register (GDTR) or the interrupt descriptor table register (IDTR) in the destination operand. The destination operand specifies a 6-byte memory location. If the operand-size attribute is 32 bits, the 16-bit limit field of the register is stored in the lower 2 bytes of the memory location and the 32-bit base address is stored in the upper 4 bytes. If the operand-size attribute is 16 bits, the limit is stored in the lower 2 bytes and the 24-bit base address is stored in the third, fourth, and fifth byte, with the sixth byte filled with 0s."
+"The SGDT and SIDT instructions are only useful in operating-system software; however, they can be used in application programs without causing an exception to be generated."
+""
+"Intel Architecture Compatibility"
+""
+"The 16-bit forms of the SGDT and SIDT instructions are compatible with the Intel 286 processor, if the upper 8 bits are not referenced. The Intel 286 processor fills these bits with 1s; the Pentium Pro, Pentium, Intel486, and Intel386 processors fill these bits with 0s."
+[2]
+"IF instruction is IDTR"
+"THEN"
+"IF OperandSize = 16"
+"THEN"
+"DEST[0:15] ¬ IDTR(Limit);"
+"DEST[16:39] ¬ IDTR(Base); (* 24 bits of base address loaded; *)"
+"DEST[40:47] ¬ 0;"
+"ELSE (* 32-bit Operand Size *)"
+"DEST[0:15] ¬ IDTR(Limit);"
+"DEST[16:47] ¬ IDTR(Base); (* full 32-bit base address loaded *)"
+"FI;"
+"ELSE (* instruction is SGDT *)"
+"IF OperandSize = 16"
+"THEN"
+"DEST[0:15] ¬ GDTR(Limit);"
+"DEST[16:39] ¬ GDTR(Base); (* 24 bits of base address loaded; *)"
+"DEST[40:47] ¬ 0;"
+"ELSE (* 32-bit Operand Size *)"
+"DEST[0:15] ¬ GDTR(Limit);"
+"DEST[16:47] ¬ GDTR(Base); (* full 32-bit base address loaded *)"
+"FI;"
+"FI;"
+[3]
+"None."
+[4]
+"Protected Mode Exceptions"
+""
+"#UD If the destination operand is a register."
+"#GP(0) If the destination is located in a nonwritable segment. If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register is used to access memory and it contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If an unaligned memory access occurs when the CPL is 3 and alignment checking is enabled."
+""
+"Real-Address Mode Exceptions"
+""
+"#UD If the destination operand is a register."
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#UD If the destination operand is a register."
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If an unaligned memory access occurs when alignment checking is enabled."
+[5]
+"0F 01 /0 SGDT m Store GDTR to m"
+"0F 01 /1 SIDT m Store IDTR to m"
+[6]
+</SGDT>
+</SIDT>
+<SHLD>
+[1]
+"SHLD: Double Precision Shift Left"
+""
+"Shifts the first operand (destination operand) to the left the number of bits specified by the third operand (count operand). The second operand (source operand) provides bits to shift in from the right (starting with bit 0 of the destination operand). The destination operand can be a register or a memory location; the source operand is a register. The count operand is an unsigned integer that can be an immediate byte or the contents of the CL register. Only bits 0 through 4 of the count are used, which masks the count to a value between 0 and 31. If the count is greater than the operand size, the result in the destination operand is undefined."
+"If the count is 1 or greater, the CF flag is filled with the last bit shifted out of the destination operand. For a 1-bit shift, the OF flag is set if a sign change occurred; otherwise, it is cleared. If the count operand is 0, the flags are not affected. The SHLD instruction is useful for multiprecision shifts of 64 bits or more."
+[2]
+"COUNT ¬ COUNT MOD 32;"
+"SIZE ¬ OperandSize"
+"IF COUNT = 0"
+"THEN"
+"no operation"
+"ELSE"
+"IF COUNT ³ SIZE"
+"THEN (* Bad parameters *)"
+"DEST is undefined;"
+"CF, OF, SF, ZF, AF, PF are undefined;"
+"ELSE (* Perform the shift *)"
+"CF ¬ BIT[DEST, SIZE – COUNT];"
+"(* Last bit shifted out on exit *)"
+"FOR i ¬ SIZE – 1 DOWNTO COUNT"
+"DO"
+"Bit(DEST, i) ¬ Bit(DEST, i – COUNT);"
+"OD;"
+"FOR i ¬ COUNT – 1 DOWNTO 0"
+"DO"
+"BIT[DEST, i] ¬ BIT[SRC, i – COUNT + SIZE];"
+"OD;"
+"FI;"
+"FI;"
+[3]
+"If the count is 1 or greater, the CF flag is filled with the last bit shifted out of the destination operand and the SF, ZF, and PF flags are set according to the value of the result. For a 1-bit shift, the OF flag is set if a sign change occurred; otherwise, it is cleared. For shifts greater than 1 bit, the OF flag is undefined. If a shift occurs, the AF flag is undefined. If the count operand is 0, the flags are not affected. If the count is greater than the operand size, the flags are undefined."
+[4]
+"Protected Mode Exceptions"
+""
+"#GP(0) If the destination is located in a nonwritable segment. If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"0F A4 SHLD r/m16,r16,imm8 Shift r/m16 to left imm8 places while shifting bits from r16 in from the right"
+"0F A5 SHLD r/m16,r16,CL Shift r/m16 to left CL places while shifting bits from r16 in from the right"
+"0F A4 SHLD r/m32,r32,imm8 Shift r/m32 to left imm8 places while shifting bits from r32 in from the right"
+"0F A5 SHLD r/m32,r32,CL Shift r/m32 to left CL places while shifting bits from r32 in from the right"
+[6]
+</SHLD>
+<SHRD>
+[1]
+"SHRD: Double Precision Shift Right"
+""
+"Shifts the first operand (destination operand) to the right the number of bits specified by the third operand (count operand). The second operand (source operand) provides bits to shift in from the left (starting with the most significant bit of the destination operand). The destination operand can be a register or a memory location; the source operand is a register. The count operand is an unsigned integer that can be an immediate byte or the contents of the CL register. Only bits 0 through 4 of the count are used, which masks the count to a value between 0 and 31. If the count is greater than the operand size, the result in the destination operand is undefined."
+"If the count is 1 or greater, the CF flag is filled with the last bit shifted out of the destination operand. For a 1-bit shift, the OF flag is set if a sign change occurred; otherwise, it is cleared. If the count operand is 0, the flags are not affected. The SHRD instruction is useful for multiprecision shifts of 64 bits or more."
+[2]
+"COUNT ¬ COUNT MOD 32;"
+"SIZE ¬ OperandSize"
+"IF COUNT = 0"
+"THEN"
+"no operation"
+"ELSE"
+"IF COUNT ³ SIZE"
+"THEN (* Bad parameters *)"
+"DEST is undefined;"
+"CF, OF, SF, ZF, AF, PF are undefined;"
+"ELSE (* Perform the shift *)"
+"CF ¬ BIT[DEST, COUNT – 1]; (* last bit shifted out on exit *)"
+"FOR i ¬ 0 TO SIZE – 1 – COUNT"
+"DO"
+"BIT[DEST, i] ¬ BIT[DEST , i – COUNT];"
+"OD;"
+"FOR i ¬ SIZE – COUNT TO SIZE – 1"
+"DO"
+"BIT[DEST ,i] ¬ BIT[inBits,i+COUNT – SIZE];"
+"OD;"
+"FI;"
+"FI;"
+[3]
+"If the count is 1 or greater, the CF flag is filled with the last bit shifted out of the destination operand and the SF, ZF, and PF flags are set according to the value of the result. For a 1-bit shift, the OF flag is set if a sign change occurred; otherwise, it is cleared. For shifts greater than 1 bit, the OF flag is undefined. If a shift occurs, the AF flag is undefined. If the count operand is 0, the flags are not affected. If the count is greater than the operand size, the flags are undefined."
+[4]
+"Protected Mode Exceptions"
+""
+"#GP(0) If the destination is located in a nonwritable segment. If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"0F AC SHRD r/m16,r16,imm8 Shift r/m16 to right imm8 places while shifting bits from r16 in from the left"
+"0F AD SHRD r/m16,r16,CL Shift r/m16 to right CL places while shifting bits from r16 in from the left"
+"0F AC SHRD r/m32,r32,imm8 Shift r/m32 to right imm8 places while shifting bits from r32 in from the left"
+"0F AD SHRD r/m32,r32,CL Shift r/m32 to right CL places while shifting bits from r32 in from the left"
+[6]
+</SHRD>
+<SLDT>
+[1]
+"SLDT: Store Local Descriptor Table Register"
+""
+"Stores the segment selector from the local descriptor table register (LDTR) in the destination operand. The destination operand can be a general-purpose register or a memory location. The segment selector stored with this instruction points to the segment descriptor (located in the GDT) for the current LDT. This instruction can only be executed in protected mode."
+"When the destination operand is a 32-bit register, the 16-bit segment selector is copied into the lower-order 16 bits of the register. The high-order 16 bits of the register are cleared to 0s for the Pentium Pro processor and are undefined for Pentium, Intel486, and Intel386 processors. When the destination operand is a memory location, the segment selector is written to memory as a 16-bit quantity, regardless of the operand size. The SLDT instruction is only useful in operating-system software; however, it can be used in application programs."
+[2]
+"DEST ¬ LDTR(SegmentSelector);"
+[3]
+"None."
+[4]
+"Protected Mode Exceptions"
+""
+"#GP(0) If the destination is located in a nonwritable segment. If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register is used to access memory and it contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#UD The SLDT instruction is not recognized in real-address mode."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#UD The SLDT instruction is not recognized in virtual-8086 mode."
+[5]
+"0F 00 /0 SLDT r/m16 Stores segment selector from LDTR in r/m16"
+"0F 00 /0 SLDT r/m32 Store segment selector from LDTR in low-order 16 bits of r/m32"
+[6]
+</SLDT>
+<SMSW>
+[1]
+"SMSW: Store Machine Status Word"
+""
+"Stores the machine status word (bits 0 through 15 of control register CR0) into the destination operand. The destination operand can be a 16-bit general-purpose register or a memory location. When the destination operand is a 32-bit register, the low-order 16 bits of register CR0 are copied into the low-order 16 bits of the register and the upper 16 bits of the register are undefined."
+"When the destination operand is a memory location, the low-order 16 bits of register CR0 are written to memory as a 16-bit quantity, regardless of the operand size. The SMSW instruction is only useful in operating-system software; however, it is not a privileged instruction and can be used in application programs. This instruction is provided for compatibility with the Intel 286 processor. Programs and procedures intended to run on the Pentium Pro, Pentium, Intel486, and Intel386 processors should use the MOV (control registers) instruction to load the machine status word."
+[2]
+"DEST ¬ CR0[15:0]; (* Machine status word *);"
+[3]
+"None."
+[4]
+"Protected Mode Exceptions"
+""
+"#GP(0) If the destination is located in a nonwritable segment. If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register is used to access memory and it contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"0F 01 /4 SMSW r/m16 Store machine status word to r/m16"
+"0F 01 /4 SMSW r32/m16 Store machine status word in low-order 16 bits of r32/m16; high-order 16 bits of r32 are undefined"
+[6]
+</SMSW>
+<STC>
+[1]
+"STC: Set Carry Flag"
+""
+"Sets the CF flag in the EFLAGS register."
+[2]
+"CF ¬ 1;"
+[3]
+"The CF flag is set. The OF, ZF, SF, AF, and PF flags are unaffected."
+[4]
+"(All Operating Modes)"
+"None."
+[5]
+"F9 STC Set CF flag"
+[6]
+</STC>
+<STD>
+[1]
+"STD: Set Direction Flag"
+""
+"Sets the DF flag in the EFLAGS register. When the DF flag is set to 1, string operations decrement the index registers (ESI and/or EDI)."
+[2]
+"DF ¬ 1;"
+[3]
+"The DF flag is set. The CF, OF, ZF, SF, AF, and PF flags are unaffected."
+[4]
+"(All Operating Modes)"
+"None."
+[5]
+"FD STD Set DF flag"
+[6]
+</STD>
+<STI>
+[1]
+"STI: Set Interrupt Flag"
+""
+"Sets the interrupt flag (IF) in the EFLAGS register. After the IF flag is set, the processor begins responding to external, maskable interrupts after the next instruction is executed. The delayed effect of this instruction is provided to allow interrupts to be enabled just before returning from a procedure (or subroutine). For instance, if an STI instruction is followed by an RET instruction, the RET instruction is allowed to execute before external interrupts are recognized 1 . This behavior allows external interrupts to be disabled at the beginning of a procedure and enabled again at the end of the procedure. If the STI instruction is followed by a CLI instruction (which clears the IF flag), the effect of the STI instruction is negated. The IF flag and the STI and CLI instructions have no affect on the generation of exceptions and NMI interrupts."
+[2]
+"IF PE=0 (* Executing in real-address mode *)"
+"THEN"
+"IF ¬ 1; (* Set Interrupt Flag *)"
+"ELSE (* Executing in protected mode or virtual-8086 mode *)"
+"IF VM=0 (* Executing in protected mode*)"
+"THEN"
+"IF IOPL = 3"
+"THEN"
+"IF ¬ 1;"
+"ELSE"
+"IF CPL £ IOPL"
+"THEN"
+"IF ¬ 1;"
+"ELSE"
+"#GP(0);"
+"FI;"
+"FI;"
+"ELSE (* Executing in Virtual-8086 mode *)"
+"#GP(0); (* Trap to virtual-8086 monitor *)"
+"FI;"
+"FI;"
+[3]
+"The IF flag is set to 1."
+[4]
+"Protected Mode Exceptions"
+""
+"#GP(0) If the CPL is greater (has less privilege) than the IOPL of the current program or procedure."
+""
+"Real-Address Mode Exceptions"
+""
+"None."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If the CPL is greater (has less privilege) than the IOPL of the current program or procedure."
+[5]
+"FB STI Set interrupt flag; external, maskable interrupts enabled"
+[6]
+</STI>
+<STOS>
+<STOSB>
+<STOSD>
+<STOSW>
+[1]
+"STOS/STOSB/STOSW/STOSD: Store String"
+""
+"Stores a byte, word, or doubleword from the AL, AX, or EAX register, respectively, into the destination operand. The destination operand is a memory location, the address of which is read from either the ES:EDI or the ES:DI registers (depending on the address-size attribute of the instruction, 32 or 16, respectively). The ES segment cannot be overridden with a segment override prefix."
+"At the assembly-code level, two forms of this instruction are allowed: the “explicit-operands” form and the “no-operands” form. The explicit-operands form (specified with the STOS mnemonic) allows the destination operand to be specified explicitly. Here, the destination operand should be a symbol that indicates the size and location of the destination value. The source operand is then automatically selected to match the size of the destination operand (the AL register for byte operands, AX for word operands, and EAX for doubleword operands). This explicit-operands form is provided to allow documentation; however, note that the documentation provided by this form can be misleading. That is, the destination operand symbol must specify the correct type (size) of the operand (byte, word, or doubleword), but it does not have to specify the correct location. The location is always specified by the ES:(E)DI registers, which must be loaded correctly before the store string instruction is executed."
+"The no-operands form provides “short forms” of the byte, word, and doubleword versions of the STOS instructions. Here also ES:(E)DI is assumed to be the destination operand and the AL, AX, or EAX register is assumed to be the source operand. The size of the destination and source operands is selected with the mnemonic: STOSB (byte read from register AL), STOSW (word from AX), or STOSD (doubleword from EAX). After the byte, word, or doubleword is transferred from the AL, AX, or EAX register to the memory location, the (E)DI register is incremented or decremented automatically according to the setting of the DF flag in the EFLAGS register. (If the DF flag is 0, the (E)DI register is incremented; if the DF flag is 1, the (E)DI register is decremented.) The (E)DI register is incremented or decremented by 1 for byte operations, by 2 for word operations, or by 4 for doubleword operations."
+"The STOS, STOSB, STOSW, and STOSD instructions can be preceded by the REP prefix for block loads of ECX bytes, words, or doublewords. More often, however, these instructions are used within a LOOP construct because data needs to be moved into the AL, AX, or EAX register before it can be stored."
+[2]
+"IF (byte store)"
+"THEN"
+"DEST ¬ AL;"
+"THEN IF DF = 0"
+"THEN (E)DI ¬ (E)DI + 1;"
+"ELSE (E)DI ¬ (E)DI – 1;"
+"FI;"
+"ELSE IF (word store)"
+"THEN"
+"DEST ¬ AX;"
+"THEN IF DF = 0"
+"THEN (E)DI ¬ (E)DI + 2;"
+"ELSE (E)DI ¬ (E)DI – 2;"
+"FI;"
+"ELSE (* doubleword store *)"
+"DEST ¬ EAX;"
+"THEN IF DF = 0"
+"THEN (E)DI ¬ (E)DI + 4;"
+"ELSE (E)DI ¬ (E)DI – 4;"
+"FI;"
+"FI;"
+"FI;"
+[3]
+"None."
+[4]
+"Protected Mode Exceptions"
+""
+"#GP(0) If the destination is located in a nonwritable segment. If a memory operand effective address is outside the limit of the ES segment. If the ES register contains a null segment selector."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the ES segment limit."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the ES segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"AA STOS m8 Store AL at address ES:(E)DI"
+"AB STOS m16 Store AX at address ES:(E)DI"
+"AB STOS m32 Store EAX at address ES:(E)DI"
+"AA STOSB Store AL at address ES:(E)DI"
+"AB STOSW Store AX at address ES:(E)DI"
+"AB STOSD Store EAX at address ES:(E)DI"
+[6]
+</STOS>
+</STOSB>
+</STOSD>
+</STOSW>
+<STR>
+[1]
+"STR: Store Task Register"
+""
+"Stores the segment selector from the task register (TR) in the destination operand. The destination operand can be a general-purpose register or a memory location. The segment selector stored with this instruction points to the task state segment (TSS) for the currently running task. When the destination operand is a 32-bit register, the 16-bit segment selector is copied into the lower 16 bits of the register and the upper 16 bits of the register are cleared to 0s. When the destination operand is a memory location, the segment selector is written to memory as a 16-bit quantity, regardless of operand size."
+"The STR instruction is useful only in operating-system software. It can only be executed in protected mode."
+[2]
+"DEST ¬ TR(SegmentSelector);"
+[3]
+"None."
+[4]
+"Protected Mode Exceptions"
+""
+"#GP(0) If the destination is a memory operand that is located in a nonwritable segment or if the effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register is used to access memory and it contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#UD The STR instruction is not recognized in real-address mode."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#UD The STR instruction is not recognized in virtual-8086 mode."
+[5]
+"0F 00 /1 STR r/m16 Stores segment selector from TR in r/m16"
+[6]
+</STR>
+<SUB>
+[1]
+"SUB: Subtract"
+""
+"Subtracts the second operand (source operand) from the first operand (destination operand) and stores the result in the destination operand. The destination operand can be a register or a memory location; the source operand can be an immediate, register, or memory location. (However, two memory operands cannot be used in one instruction.) When an immediate value is used as an operand, it is sign-extended to the length of the destination operand format."
+"The SUB instruction does not distinguish between signed or unsigned operands. Instead, the processor evaluates the result for both data types and sets the OF and CF flags to indicate a borrow in the signed or unsigned result, respectively. The SF flag indicates the sign of the signed result."
+[2]
+"DEST ¬ DEST – SRC;"
+[3]
+"The OF, SF, ZF, AF, PF, and CF flags are set according to the result."
+[4]
+"Protected Mode Exceptions"
+""
+"#GP(0) If the destination is located in a nonwritable segment. If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"2C ib SUB AL, imm8 Subtract imm8 from AL"
+"2D iw SUB AX, imm16 Subtract imm16 from AX"
+"2D id SUB EAX, imm32 Subtract imm32 from EAX"
+"80 /5 ib SUB r/m8,imm8 Subtract imm8 from r/m8"
+"81 /5 iw SUB r/m16,imm16 Subtract imm16 from r/m16"
+"81 /5 id SUB r/m32,imm32 Subtract imm32 from r/m32"
+"83 /5 ib SUB r/m16,imm8 Subtract sign-extended imm8 from r/m16"
+"83 /5 ib SUB r/m32,imm8 Subtract sign-extended imm8 from r/m32"
+"28 / r SUB r/m8,r8 Subtract r8 from r/m8"
+"29 / r SUB r/m16,r16 Subtract r16 from r/m16"
+"29 / r SUB r/m32,r32 Subtract r32 from r/m32"
+"2A / r SUB r8,r/m8 Subtract r/m8 from r8"
+"2B / r SUB r16,r/m16 Subtract r/m16 from r16"
+"2B / r SUB r32,r/m32 Subtract r/m32 from r32"
+[6]
+</SUB>
+<SS:>
+[1]
+"Internal disassembler's symbol which indicates that the next command is used with the SS: segment."
+[2]
+"Í/Á"
+[3]
+"Í/Á"
+[4]
+"Í/Á"
+[5]
+"N/A"
+[6]
+</SS:>

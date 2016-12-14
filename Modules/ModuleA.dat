@@ -1,0 +1,273 @@
+<AAA>
+[1]
+"AAA: ASCII Adjust After Addition"
+""
+"Adjusts the sum of two unpacked BCD values to create an unpacked BCD result. The AL register is the implied source and destination operand for this instruction. The AAA instruction is only useful when it follows an ADD instruction that adds (binary addition) two unpacked BCD values and stores a byte result in the AL register. The AAA instruction then adjusts the contents of the AL register to contain the correct 1-digit unpacked BCD result."
+"If the addition produces a decimal carry the AH register is incremented by 1 and the CF and AF flags are set. If there was no decimal carry the CF and AF flags are cleared and the AH register is unchanged. In either case bits 4 through 7 of the AL register are cleared to 0."
+[2]
+"IF ((AL AND 0FH) > 9) OR (AF = 1)"
+"THEN"
+"AL ¬ (AL + 6);"
+"AH ¬ AH + 1;"
+"AF ¬ 1;"
+"CF ¬ 1;"
+"ELSE"
+"AF ¬ 0;"
+"CF ¬ 0;"
+"FI,"
+"AL ¬ AL AND 0FH;"
+[3]
+"The AF and CF flags are set to 1 if the adjustment results in a decimal carry; otherwise they are cleared to 0. The OF - SF - ZF and PF flags are undefined."
+[4]
+"(All Operating Modes)"
+"None."
+[5]
+"37 AAA ASCII adjust AL after addition"
+[6]
+</AAA>
+<AAD>
+[1]
+"AAD: ASCII Adjust AX Before Division"
+""
+"Adjusts two unpacked BCD digits (the least-significant digit in the AL register and the most-significant digit in the AH register) so that a division operation performed on the result will yield a correct unpacked BCD value. The AAD instruction is only useful when it precedes a DIV instruction that divides (binary division) the adjusted value in the AX register by an unpacked BCD value."
+"The AAD instruction sets the value in the AL register to (AL + (10 * AH)), and then clears the AH register to 00H. The value in the AX register is then equal to the binary equivalent of the original unpacked two-digit (base 10) number in registers AH and AL."
+"The generalized version of this instruction allows adjustment of two unpacked digits of any number base (see the 'Operation' section), by setting the imm8 byte to the selected number base (for example, 08H for octal, 0AH for decimal, or 0CH for base 12 numbers). The AAD mnemonic is interpreted by all assemblers to mean adjust ASCII (base 10) values. To adjust values in another number base, the instruction must be hand coded in machine code (D5 imm8)."
+[2]
+"tempAL ¬ AL;"
+"tempAH ¬ AH;"
+"AL ¬ (tempAL + (tempAH * imm8)) AND FFH; (* imm8 is set to 0AH for the AAD mnemonic *)"
+"AH ¬ 0"
+""
+"The immediate value (imm8) is taken from the second byte of the instruction."
+[3]
+"The SF, ZF, and PF flags are set according to the result; the OF, AF, and CF flags are undefined."
+[4]
+"(All Operating Modes)"
+"None."
+[5]
+"D5 0A AAD ASCII adjust AX before division"
+"D5 ib (No mnemonic) Adjust AX before division to number base imm8"
+[6]
+</AAD>
+<AAM>
+[1]
+"AAM: ASCII Adjust AX After Multiply"
+""
+"Adjusts the result of the multiplication of two unpacked BCD values to create a pair of unpacked (base 10) BCD values. The AX register is the implied source and destination operand for this instruction. The AAM instruction is only useful when it follows an MUL instruction that multi-plies (binary multiplication) two unpacked BCD values and stores a word result in the AX register. The AAM instruction then adjusts the contents of the AX register to contain the correct 2-digit unpacked (base 10) BCD result."
+"The generalized version of this instruction allows adjustment of the contents of the AX to create two unpacked digits of any number base (see the 'Operation' section). Here, the imm8 byte is set to the selected number base (for example, 08H for octal, 0AH for decimal, or 0CH for base 12 numbers). The AAM mnemonic is interpreted by all assemblers to mean adjust to ASCII (base 10) values. To adjust to values in another number base, the instruction must be hand coded in machine code (D4 imm8)."
+[2]
+"tempAL ¬ AL;"
+"AH ¬ tempAL / imm8; (* imm8 is set to 0AH for the AAD mnemonic *)"
+"AL ¬ tempAL MOD imm8;"
+""
+"The immediate value (imm8) is taken from the second byte of the instruction."
+[3]
+"The SF, ZF, and PF flags are set according to the result. The OF, AF, and CF flags are undefined."
+[4]
+"(All Operating Modes)"
+"None with the default immediate value of 0AH. If, however, an immediate value of 0 is used, it will cause a #DE (divide error) exception."
+[5]
+"D4 0A AAM ASCII adjust AX after multiply"
+"D4 ib (No mnemonic) Adjust AX after multiply to number base imm8"
+[6]
+</AAM>
+<AAS>
+[1]
+"AAS: ASCII Adjust AL After Subtraction"
+""
+"Adjusts the result of the subtraction of two unpacked BCD values to create a unpacked BCD result. The AL register is the implied source and destination operand for this instruction. The AAS instruction is only useful when it follows a SUB instruction that subtracts (binary subtrac-tion) one unpacked BCD value from another and stores a byte result in the AL register. The AAA instruction then adjusts the contents of the AL register to contain the correct 1-digit unpacked BCD result."
+"If the subtraction produced a decimal carry, the AH register is decremented by 1, and the CF and AF flags are set. If no decimal carry occurred, the CF and AF flags are cleared, and the AH register is unchanged. In either case, the AL register is left with its top nibble set to 0."
+[2]
+"IF ((AL AND 0FH) > 9) OR (AF = 1)"
+"THEN"
+"AL ¬ AL ' 6;"
+"AH ¬ AH ' 1;"
+"AF ¬ 1;"
+"CF ¬ 1;"
+"ELSE"
+"CF ¬ 0;"
+"AF ¬ 0;"
+"FI;"
+"AL ¬ AL AND 0FH;"
+[3]
+"The AF and CF flags are set to 1 if there is a decimal borrow; otherwise, they are cleared to 0. The OF, SF, ZF, and PF flags are undefined."
+[4]
+"(All Operating Modes)"
+"None."
+[5]
+"3F AAS ASCII adjust AL after subtraction"
+[6]
+</AAS>
+<ADC>
+[1]
+"ADC: Add with Carry"
+""
+"Adds the destination operand (first operand), the source operand (second operand), and the carry (CF) flag and stores the result in the destination operand. The destination operand can be a register or a memory location; the source operand can be an immediate, a register, or a memory location. (However, two memory operands cannot be used in one instruction.) The state of the CF flag represents a carry from a previous addition. When an immediate value is used as an operand, it is sign-extended to the length of the destination operand format."
+"The ADC instruction does not distinguish between signed or unsigned operands. Instead, the processor evaluates the result for both data types and sets the OF and CF flags to indicate a carry in the signed or unsigned result, respectively. The SF flag indicates the sign of the signed result."
+"The ADC instruction is usually executed as part of a multibyte or multiword addition in which an ADD instruction is followed by an ADC instruction."
+[2]
+"DEST ¬ DEST + SRC + CF;"
+[3]
+"The OF, SF, ZF, AF, CF, and PF flags are set according to the result."
+[4]
+"Protected Mode Exceptions"
+""
+"#GP(0) If the destination is located in a nonwritable segment. If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register is used to access memory and it contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"14 ib ADC AL, imm8 Add with carry imm8 to AL"
+"15 iw ADC AX, imm16 Add with carry imm16 to AX"
+"15 id ADC EAX, imm32 Add with carry imm32 to EAX"
+"80 /2 ib ADC r/m8, imm8 Add with carry imm8 to r/m8"
+"81 /2 iw ADC r/m16,imm16 Add with carry imm16 to r/m16"
+"81 /2 id ADC r/m32,imm32 Add with CF imm32 to r/m32"
+"83 /2 ib ADC r/m16,imm8 Add with CF sign-extended imm8 to r/m16"
+"83 /2 ib ADC r/m32,imm8 Add with CF sign-extended imm8 into r/m32"
+"10 / r ADC r/m8,r8 Add with carry byte register to r/m8"
+"11 / r ADC r/m16,r16 Add with carry r16 to r/m16"
+"11 / r ADC r/m32,r32 Add with CF r32 to r/m32"
+"12 / r ADC r8,r/m8 Add with carry r/m8 to byte register"
+"13 / r ADC r16,r/m16 Add with carry r/m16 to r16"
+"13 / r ADC r32,r/m32 Add with CF r/m32 to r32"
+[6]
+</ADC>
+<ADD>
+[1]
+"ADD: Add"
+""
+"Adds the first operand (destination operand) and the second operand (source operand) and stores the result in the destination operand. The destination operand can be a register or a memory location; the source operand can be an immediate, a register, or a memory location. (However, two memory operands cannot be used in one instruction.) When an immediate value is used as an operand, it is sign-extended to the length of the destination operand format."
+"The ADD instruction does not distinguish between signed or unsigned operands. Instead, the processor evaluates the result for both data types and sets the OF and CF flags to indicate a carry in the signed or unsigned result, respectively. The SF flag indicates the sign of the signed result."
+[2]
+"DEST ¬ DEST + SRC;"
+[3]
+"The OF, SF, ZF, AF, CF, and PF flags are set according to the result."
+[4]
+"Protected Mode Exceptions"
+""
+"#GP(0) If the destination is located in a nonwritable segment. If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register is used to access memory and it contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"04 ib ADD AL, imm8 Add imm8 to AL"
+"05 iw ADD AX, imm16 Add imm16 to AX"
+"05 id ADD EAX, imm32 Add imm32 to EAX"
+"80 /0 ib ADD r/m8,imm8 Add imm8 to r/m8"
+"81 /0 iw ADD r/m16,imm16 Add imm16 to r/m16"
+"81 /0 id ADD r/m32,imm32 Add imm32 to r/m32"
+"83 /0 ib ADD r/m16,imm8 Add sign-extended imm8 to r/m16"
+"83 /0 ib ADD r/m32,imm8 Add sign-extended imm8 to r/m32"
+"00 / r ADD r/m8,r8 Add r8 to r/m8"
+"01 / r ADD r/m16,r16 Add r16 to r/m16"
+"01 / r ADD r/m32,r32 Add r32 to r/m32"
+"02 / r ADD r8,r/m8 Add r/m8 to r8"
+"03 / r ADD r16,r/m16 Add r/m16 to r16"
+"03 / r ADD r32,r/m32 Add r/m32 to r32"
+[6]
+</ADD>
+<AND>
+[1]
+"AND: Logical AND"
+""
+"Performs a bitwise AND operation on the destination (first) and source (second) operands and stores the result in the destination operand location. The source operand can be an immediate, a register, or a memory location; the destination operand can be a register or a memory location. (However, two memory operands cannot be used in one instruction.) Each bit of the result of the AND instruction is a 1 if both corresponding bits of the operands are 1; otherwise, it becomes a 0."
+[2]
+"DEST ¬ DEST AND SRC;"
+[3]
+"The OF and CF flags are cleared; the SF, ZF, and PF flags are set according to the result. The state of the AF flag is undefined."
+[4]
+"Protected Mode Exceptions"
+""
+"#GP(0) If the destination operand points to a nonwritable segment. If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"24 ib AND AL, imm8 AL AND imm8"
+"25 iw AND AX, imm16 AX AND i mm16"
+"25 id AND EAX, imm32 EAX AND imm32"
+"80 /4 ib AND r/m8,imm8 r/m8 AND imm8"
+"81 /4 iw AND r/m16,imm16 r/m16 AND imm16"
+"81 /4 id AND r/m32,imm32 r/m32 AND imm32"
+"83 /4 ib AND r/m16,imm8 r/m16 AND imm8 (sign-extended)"
+"83 /4 ib AND r/m32,imm8 r/m32 AND imm8 (sign-extended)"
+"20 /r AND r/m8,r8 r/m8 AND r8"
+"21 / r AND r/m16,r16 r/m16 AND r16"
+"21 / r AND r/m32,r32 r/m32 AND r32"
+"22 / r AND r8,r/m8 r8 AND r/m8"
+"23 / r AND r16,r/m16 r16 AND r/m16"
+"23 / r AND r32,r/m32 r32 AND r/m32"
+[6]
+</AND>
+<ARPL>
+[1]
+"ARPL: Adjust RPL Field of Segment Selector"
+""
+"Compares the RPL fields of two segment selectors. The first operand (the destination operand) contains one segment selector and the second operand (source operand) contains the other. (The RPL field is located in bits 0 and 1 of each operand.) If the RPL field of the destination operand is less than the RPL field of the source operand, the ZF flag is set and the RPL field of the destination operand is increased to match that of the source operand. Otherwise, the ZF flag is cleared and no change is made to the destination operand. (The destination operand can be a word register or a memory location; the source operand must be a word register.)"
+"The ARPL instruction is provided for use by operating-system procedures (however, it can also be used by applications). It is generally used to adjust the RPL of a segment selector that has been passed to the operating system by an application program to match the privilege level of the application program. Here the segment selector passed to the operating system is placed in the destination operand and segment selector for the application program's code segment is placed in the source operand. (The RPL field in the source operand represents the privilege level of the application program.) Execution of the ARPL instruction then insures that the RPL of the segment selector received by the operating system is no lower (does not have a higher privilege) than the privilege level of the application program. (The segment selector for the application program's code segment can be read from the stack following a procedure call.)"
+[2]
+"IF DEST(RPL) < SRC(RPL)"
+"THEN"
+"ZF ¬ 1;"
+"DEST(RPL) ¬ SRC(RPL);"
+"ELSE"
+"ZF ¬ 0;"
+"FI;"
+[3]
+"The ZF flag is set to 1 if the RPL field of the destination operand is less than that of the source operand; otherwise, is cleared to 0."
+[4]
+"Protected Mode Exceptions"
+""
+"#GP(0) If the destination is located in a nonwritable segment. If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register is used to access memory and it contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#UD The ARPL instruction is not recognized in real-address mode."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#UD The ARPL instruction is not recognized in virtual-8086 mode."
+[5]
+"63 / r ARPL r/m16,r16 Adjust RPL of r/m16 to not less than RPL of r16"
+[6]
+</ARPL>

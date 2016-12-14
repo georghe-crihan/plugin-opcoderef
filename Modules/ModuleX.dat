@@ -1,0 +1,169 @@
+<XADD>
+[1]
+"XADD: Exchange and Add"
+""
+"Exchanges the first operand (destination operand) with the second operand (source operand), then loads the sum of the two values into the destination operand. The destination operand can be a register or a memory location; the source operand is a register. This instruction can be used with a LOCK prefix."
+""
+"Intel Architecture Compatibility"
+""
+"Intel Architecture processors earlier than the Intel486 processor do not recognize this instruction. If this instruction is used, you should provide an equivalent code sequence that runs on earlier processors."
+[2]
+"TEMP ¬ SRC + DEST"
+"SRC ¬ DEST"
+"DEST ¬ TEMP"
+[3]
+"The CF, PF, AF, SF, ZF, and OF flags are set according to the result of the addition, which is stored in the destination operand."
+[4]
+"Protected Mode Exceptions"
+""
+"#GP(0) If the destination is located in a nonwritable segment. If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"0F C0/r XADD r/m8,r8 Exchange r8 and r/m8; load sum into r/m8."
+"0F C1/r XADD r/m16,r16 Exchange r16 and r/m16; load sum into r/m16."
+"0F C1/r XADD r/m32,r32 Exchange r32 and r/m32; load sum into r/m32."
+[6]
+</XADD>
+<XCHG>
+[1]
+"XCHG: Exchange Register/Memory with Register"
+""
+"Exchanges the contents of the destination (first) and source (second) operands. The operands can be two general-purpose registers or a register and a memory location. If a memory operand is referenced, the processor’s locking protocol is automatically implemented for the duration of the exchange operation, regardless of the presence or absence of the LOCK prefix or of the value of the IOPL."
+"This instruction is useful for implementing semaphores or similar data structures for process synchronization. The XCHG instruction can also be used instead of the BSWAP instruction for 16-bit operands."
+[2]
+"TEMP ¬ DEST"
+"DEST ¬ SRC"
+"SRC ¬ TEMP"
+[3]
+"None."
+[4]
+"Protected Mode Exceptions"
+""
+"#GP(0) If either operand is in a nonwritable segment. If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"90+ rw XCHG AX, r16 Exchange r16 with AX"
+"90+ rw XCHG r16,AX Exchange AX with r16"
+"90+ rd XCHG EAX, r32 Exchange r32 with EAX"
+"90+ rd XCHG r32,EAX Exchange EAX with r32"
+"86 / r XCHG r/m8,r8 Exchange r8 (byte register) with byte from r/m8"
+"86 / r XCHG r8,r/m8 Exchange byte from r/m8 with r8 (byte register)"
+"87 / r XCHG r/m16,r16 Exchange r16 with word from r/m16"
+"87 / r XCHG r16,r/m16 Exchange word from r/m16 with r16"
+"87 / r XCHG r/m32,r32 Exchange r32 with doubleword from r/m32"
+"87 / r XCHG r32,r/m32 Exchange doubleword from r/m32 with r32"
+[6]
+</XCHG>
+<XLAT>
+<XLATB>
+[1]
+"XLAT/XLATB: Table Look-up Translation"
+""
+"Locates a byte entry in a table in memory, using the contents of the AL register as a table index, then copies the contents of the table entry back into the AL register. The index in the AL register is treated as an unsigned integer. The XLAT and XLATB instructions get the base address of the table in memory from either the DS:EBX or the DS:BX registers (depending on the address-size attribute of the instruction, 32 or 16, respectively). (The DS segment may be overridden with a segment override prefix.)"
+"At the assembly-code level, two forms of this instruction are allowed: the “explicit-operand” form and the “no-operand” form. The explicit-operand form (specified with the XLAT mnemonic) allows the base address of the table to be specified explicitly with a symbol. This explicit-operands form is provided to allow documentation; however, note that the documentation provided by this form can be misleading. That is, the symbol does not have to specify the correct base address. The base address is always specified by the DS:(E)BX registers, which must be loaded correctly before the XLAT instruction is executed."
+"The no-operands form (XLATB) provides a “short form” of the XLAT instructions. Here also the processor assumes that the DS:(E)BX registers contain the base address of the table."
+[2]
+"IF AddressSize = 16"
+"THEN"
+"AL ¬ (DS:BX + ZeroExtend(AL))"
+"ELSE (* AddressSize = 32 *)"
+"AL ¬ (DS:EBX + ZeroExtend(AL));"
+"FI;"
+[3]
+"None."
+[4]
+"Protected Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+[5]
+"D7 XLAT m8 Set AL to memory byte DS:[(E)BX + unsigned AL]"
+"D7 XLATB Set AL to memory byte DS:[(E)BX + unsigned AL]"
+[6]
+</XLAT>
+</XLATB>
+<XOR>
+[1]
+"XOR: Logical Exclusive OR"
+""
+"Performs a bitwise exclusive OR (XOR) operation on the destination (first) and source (second) operands and stores the result in the destination operand location. The source operand can be an immediate, a register, or a memory location; the destination operand can be a register or a memory location. (However, two memory operands cannot be used in one instruction.) Each bit of the result is 1 if the corresponding bits of the operands are different; each bit is 0 if the corresponding bits are the same."
+[2]
+"DEST ¬ DEST XOR SRC;"
+[3]
+"The OF and CF flags are cleared; the SF, ZF, and PF flags are set according to the result. The state of the AF flag is undefined."
+[4]
+"Protected Mode Exceptions"
+""
+"#GP(0) If the destination operand points to a nonwritable segment. If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit. If the DS, ES, FS, or GS register contains a null segment selector."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made while the current privilege level is 3."
+""
+"Real-Address Mode Exceptions"
+""
+"#GP If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS If a memory operand effective address is outside the SS segment limit."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If a memory operand effective address is outside the CS, DS, ES, FS, or GS segment limit."
+"#SS(0) If a memory operand effective address is outside the SS segment limit."
+"#PF(fault-code) If a page fault occurs."
+"#AC(0) If alignment checking is enabled and an unaligned memory reference is made."
+[5]
+"34 ib XOR AL, imm8 AL XOR imm8"
+"35 iw XOR AX, imm16 AX XOR imm16"
+"35 id XOR EAX, imm32 EAX XOR imm32"
+"80 /6 ib XOR r/m8,imm8 r/m8 XOR imm8"
+"81 /6 iw XOR r/m16,imm16 r/m16 XOR imm16"
+"81 /6 id XOR r/m32,imm32 r/m32 XOR imm32"
+"83 /6 ib XOR r/m16,imm8 r/m16 XOR imm8 (sign-extended)"
+"83 /6 ib XOR r/m32,imm8 r/m32 XOR imm8 (sign-extended)"
+"30 / r XOR r/m8,r8 r/m8 XOR r8"
+"31 / r XOR r/m16,r16 r/m16 XOR r16"
+"31 / r XOR r/m32,r32 r/m32 XOR r32"
+"32 / r XOR r8,r/m8 r8 XOR r/m8"
+"33 / r XOR r16,r/m16 r8 XOR r/m8"
+"33 / r XOR r32,r/m32 r8 XOR r/m8"
+[6]
+</XOR>

@@ -1,0 +1,7 @@
+LIBRARY IDA.WLL
+
+EXPORTS
+callui  @153 NONAME
+idadir  @504 NONAME
+ph      @705 NONAME
+ua_mnem @916 NONAME

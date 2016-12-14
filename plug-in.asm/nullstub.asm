@@ -1,0 +1,22 @@
+.model tiny
+
+.code
+org 100h
+start:
+
+DB 'MZ'; Sig
+
+DW 0;512-41 ; Last page len
+DW 0;1 ; Image pages, incl head
+DW 0 ; # Relos
+DW 0;2 ; Paras in header
+DW 0 ; Min ram
+DW 0 ; Max ram
+DD 0 ; Stack
+DW 0 ; ChkSum
+DD 0 ; CS:IP
+DW 1Ch ; FirstRelo
+DW 0 ; Overlays
+DB 'This is a plug-in module for IDA!',0
+DB 0, 0, 0
+  end start

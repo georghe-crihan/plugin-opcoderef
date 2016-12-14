@@ -1,0 +1,26 @@
+<HLT>
+[1]
+"HLT: Halt"
+""
+"Stops instruction execution and places the processor in a HALT state. An enabled interrupt, NMI, or a reset will resume execution. If an interrupt (including NMI) is used to resume execution after a HLT instruction, the saved instruction pointer (CS:EIP) points to the instruction following the HLT instruction."
+"The HLT instruction is a privileged instruction. When the processor is running in protected or virtual-8086 mode, the privilege level of a program or procedure must be 0 to execute the HLT instruction."
+[2]
+"Enter Halt state;"
+[3]
+"None."
+[4]
+"Protected Mode Exceptions"
+""
+"#GP(0) If the current privilege level is not 0."
+""
+"Real-Address Mode Exceptions"
+""
+"None."
+""
+"Virtual-8086 Mode Exceptions"
+""
+"#GP(0) If the current privilege level is not 0."
+[5]
+"F4 HLT Halt"
+[6]
+</HLT>

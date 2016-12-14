@@ -1,0 +1,58 @@
+Instruction set reference plug-in for IDA.
+
+It was created, mainly for the reason that my knowledge of the MMX instruction
+set is not too deep. So, not to loose time, while poking into reference books, 
+inspired by the description in the www.wasm.ru/tools/disassemblers/Hackman, I
+created this masterpiece ;-) Besides, I had two goals in mind:
+   - Demonstrate that a plug-in for IDA could be written even in assembly
+   - Throw away Hackman to free up extra 25 Mb on my hard drive(I am talking of
+ my distribution of 5.01, with not only disassembler included) ;-)
+
+Note, that IDA has a 'Third-party help file feature' (see HELPFILE= in
+idagui.cfg) which could show you help on current instruction, but since it is
+rather awkward, I don't like it, really.
+
+Features:
+ - Can be built with TASM, MASM, NASM
+ - The help could be converted to many formats (html, TeX, rtf, see get_doc.pl)
+ - The help can be generated for any supported CPU and will work as plugin
+ - The help source could be generated from any Hackman-like formated source
+ - The help source could be generated from any formated source via an alternate
+parser plugin (see get_doc.pl).
+ - There could be alternate mnemonics for the instructions (see hackman.conf)
+ - The help file could be updated at runtime without plug-in unload
+ - Integration into the IDA interface (via standard help or as a pop-up window)
+ - The plug-in is help-independent (topic IDs are just CRC32 hashes)
+ - The plug-in is fast and small sized (assembly version is 4Kb compiled DLL,
+most of which are stub and alignment)
+ - The plug-in is nearly SDK-independent (just update the import library and
+the IDP_INTERFACE_VERSION constant), since most of the API, in particular the
+constants (PLUGIN), message numbers (callui), the function arguments (callui,
+ua_mnem, idadir), structures (processor_t, plugin_t) are ulikely change, well,
+anyway ;-)
+
+Bugs:
+ - Windows-only. There is no such a help system in OS/2 (afaik, anyway) and dos.
+
+Tested on:
+ - NT workstation/SP6 + IDA 4.3
+
+TODO:
+ - Add nicely formatted rtf support for printed documentation
+ - Maybe add texinfo output support
+
+Possible use
+  One can, for example:
+  1. convert the Alpha Architecture Handbook from PDF to text
+  2. write a parser module for it in Perl
+  3. plug it in, preprocess the input source using get_doc.pl
+  4. process the output with windows help compiler
+  5. name it opcoderef24.hlp (processor_t.id = PLFM_ALPHA for the DEC Alpha
+ architecture)
+  6. place it in the plugins directory
+  7. have a handy instruction set reference right in IDA!
+
+Versions of hackman supported by the input parser:
+  5.01, 8.01, hope all versions in between are OK.
+  I prefer 5.01 since it doesn't have a score of duplicate sections, so
+the stuff included is for 5.01.

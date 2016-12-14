@@ -1,0 +1,16 @@
+<UD2>
+[1]
+"UD2: Undefined Instruction"
+""
+"Generates an invalid opcode. This instruction is provided for software testing to explicitly generate an invalid opcode. The opcode for this instruction is reserved for this purpose. Other than raising the invalid opcode exception, this instruction is the same as the NOP instruction."
+[2]
+"#UD (* Generates invalid opcode exception *);"
+[3]
+"None."
+[4]
+"(All Operating Modes)"
+"#UD Instruction is guaranteed to raise an invalid opcode exception in all operating modes."
+[5]
+"0F 0B UD2 Raise invalid opcode exception"
+[6]
+</UD2>
